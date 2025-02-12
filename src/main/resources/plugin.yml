@@ -1,0 +1,9 @@
+main: me.eeshe.gtmobs.GTMobs
+name: GTMobs
+version: ${project.version}
+author: Eeshe
+softdepend: [ PlaceholderAPI ]
+api-version: 1.13
+
+commands:
+  gtmobs:
