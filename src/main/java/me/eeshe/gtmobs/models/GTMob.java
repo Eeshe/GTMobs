@@ -16,6 +16,7 @@ import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
 import me.eeshe.gtmobs.models.mobactions.MobAction;
+import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 import me.eeshe.gtmobs.util.StringUtil;
 
 public class GTMob {
@@ -28,14 +29,14 @@ public class GTMob {
   private final List<ConfigParticle> onHitParticles;
   private final List<ConfigParticle> onDeathParticles;
   private final IntRange experienceDrop;
-  private final List<MobAction> onHitActions;
-  private final List<MobAction> onShotActions;
-  private final List<MobAction> onDeathActions;
+  private final List<MobActionChain> onHitActions;
+  private final List<MobActionChain> onShotActions;
+  private final List<MobActionChain> onDeathActions;
 
   public GTMob(String id, EntityType entityType, String displayName, Map<Attribute, Double> attributes,
       ConfigSound spawnSound, List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
-      IntRange experienceDrop, List<MobAction> onHitActions,
-      List<MobAction> onShotActions, List<MobAction> onDeathActions) {
+      IntRange experienceDrop, List<MobActionChain> onHitActions,
+      List<MobActionChain> onShotActions, List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.displayName = displayName;
@@ -135,21 +136,16 @@ public class GTMob {
     return experienceDrop;
   }
 
-  public void executeMobActions(List<MobAction> mobActions, LivingEntity gtMobEntity, Entity attackerEntity) {
-    for (MobAction mobAction : mobActions) {
-      mobAction.execute(gtMobEntity, attackerEntity);
-    }
-  }
-
-  public List<MobAction> getOnHitActions() {
+  public List<MobActionChain> getOnHitActions() {
     return onHitActions;
   }
 
-  public List<MobAction> getOnShotActions() {
+  public List<MobActionChain> getOnShotActions() {
     return onShotActions;
   }
 
-  public List<MobAction> getOnDeathActions() {
+  public List<MobActionChain> getOnDeathActions() {
     return onDeathActions;
   }
+
 }

@@ -1,8 +1,11 @@
 package me.eeshe.gtmobs.files.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -21,6 +24,7 @@ import me.eeshe.gtmobs.models.config.IntRange;
 import me.eeshe.gtmobs.models.mobactions.ConsoleCommandMobAction;
 import me.eeshe.gtmobs.models.mobactions.EffectMobAction;
 import me.eeshe.gtmobs.models.mobactions.MobAction;
+import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 import me.eeshe.gtmobs.models.mobactions.MobActionTarget;
 import me.eeshe.gtmobs.models.mobactions.MobActionType;
 import me.eeshe.gtmobs.models.mobactions.SpawnMobAction;
@@ -55,19 +59,40 @@ public class MobConfig extends ConfigWrapper {
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
             new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F),
             List.of(
-                new ConfigParticle(true, Particle.SLIME, 10, 0.1, 0.1, 0.1, 0.05, null)),
+                new ConfigParticle(Particle.SLIME, 10)),
             List.of(
-                new ConfigParticle(true, Particle.SMOKE_NORMAL, 10, 0.1, 0.1, 0.1, 0.05, null)),
+                new ConfigParticle(Particle.SMOKE_NORMAL, 10),
+                new ConfigParticle(Particle.EXPLOSION_NORMAL, 1)),
             new IntRange(1, 5),
             List.of(
-                new EffectMobAction(0.5, MobActionTarget.ATTACKER,
-                    new PotionEffect(PotionEffectType.CONFUSION, 50, 0, false, true))),
-            List.of(
-                new EffectMobAction(0.5, MobActionTarget.ATTACKER,
-                    new PotionEffect(PotionEffectType.CONFUSION, 50, 0, false, true))),
-            List.of(
-                new EffectMobAction(0.5, MobActionTarget.ATTACKER,
-                    new PotionEffect(PotionEffectType.POISON, 50, 0, false, true)))),
+                new MobActionChain(List.of(
+                    new ConsoleCommandMobAction(List.of(
+                        "broadcast &5zombie1 was hit",
+                        "broadcast &5Attacker: %player_name%"), 0L)),
+                    1),
+                new MobActionChain(List.of(
+                    new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(
+                        PotionEffectType.CONFUSION,
+                        50,
+                        0,
+                        false,
+                        true)),
+                    new ConsoleCommandMobAction(List.of(
+                        "broadcast &eApplying nausea to %player_name%"), 0)),
+                    0.5)),
+            List.of(new MobActionChain(List.of(
+                new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(
+                    PotionEffectType.CONFUSION,
+                    50,
+                    0,
+                    false,
+                    true))),
+                0.5)),
+            List.of(new MobActionChain(List.of(
+                new SpawnMobAction("skeleton1", 2, 5, 100),
+                new ConsoleCommandMobAction(List.of(
+                    "broadcast &cReinforcements arriving in 5 seconds..."), 0)),
+                0.5))),
         new GTMob(
             "skeleton1",
             EntityType.SKELETON,
@@ -75,21 +100,36 @@ public class MobConfig extends ConfigWrapper {
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
             new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F),
             List.of(
-                new ConfigParticle(true, Particle.SLIME, 10, 0.1, 0.1, 0.1, 0.05, null),
-                new ConfigParticle(true, Particle.FLAME, 10, 0.1, 0.1, 0.1, 0.05, null)),
+                new ConfigParticle(Particle.SLIME, 10),
+                new ConfigParticle(Particle.FLAME, 10)),
             List.of(
-                new ConfigParticle(true, Particle.SMOKE_NORMAL, 10, 0.1, 0.1, 0.1, 0.05, null),
-                new ConfigParticle(true, Particle.EXPLOSION_HUGE, 10, 0.1, 0.1, 0.1, 0.05, null)),
+                new ConfigParticle(Particle.SMOKE_NORMAL, 10),
+                new ConfigParticle(Particle.EXPLOSION_HUGE, 10)),
             new IntRange(10, 50),
-            List.of(
-                new EffectMobAction(0.5, MobActionTarget.SELF,
-                    new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 50, 0, false, true))),
-            List.of(
-                new EffectMobAction(0.5, MobActionTarget.ATTACKER,
-                    new PotionEffect(PotionEffectType.HUNGER, 50, 0, false, true))),
-            List.of(
-                new EffectMobAction(0.5, MobActionTarget.TARGET,
-                    new PotionEffect(PotionEffectType.WITHER, 50, 0, false, true)))))) {
+            List.of(new MobActionChain(List.of(
+                new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(
+                    PotionEffectType.CONFUSION,
+                    50,
+                    0,
+                    false,
+                    true))),
+                0.5)),
+            List.of(new MobActionChain(List.of(
+                new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(
+                    PotionEffectType.CONFUSION,
+                    50,
+                    0,
+                    false,
+                    true))),
+                0.5)),
+            List.of(new MobActionChain(List.of(
+                new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(
+                    PotionEffectType.CONFUSION,
+                    50,
+                    0,
+                    false,
+                    true))),
+                0.5))))) {
       writeDefaultGTMob(gtMob);
     }
   }
@@ -108,98 +148,23 @@ public class MobConfig extends ConfigWrapper {
     config.addDefault(path + ".entity-type", gtMob.getEntityType().name());
     config.addDefault(path + ".display-name", gtMob.getDisplayName());
     ConfigUtil.writeAttributeMap(config, path + ".attributes", gtMob.getAttributes());
-    ConfigUtil.writeConfigSound(config, path + ".spawn-sound", gtMob.getSpawnSound());
+    config.addDefault(path + ".spawn-sound", gtMob.getSpawnSound().toString());
     ConfigUtil.writeConfigParticles(config, path + ".hit-particles", gtMob.getOnHitParticles());
     ConfigUtil.writeConfigParticles(config, path + ".death-particles", gtMob.getOnDeathParticles());
     ConfigUtil.writeIntRange(config, path + ".experience-drop", gtMob.getExperienceDrop());
-    writeDefaultMobActions(path + ".hit-actions", gtMob.getOnHitActions());
-    writeDefaultMobActions(path + ".shot-actions", gtMob.getOnShotActions());
-    writeDefaultMobActions(path + ".death-actions", gtMob.getOnDeathActions());
+    writeDefaultMobActions(path + ".events.hit", gtMob.getOnHitActions());
+    writeDefaultMobActions(path + ".events.shot", gtMob.getOnShotActions());
+    writeDefaultMobActions(path + ".events.death", gtMob.getOnDeathActions());
   }
 
   /**
-   * Writes the passed list of MobActions to the config.
+   * Writes the passed List of MobActionChains to the passed path
    *
-   * @param path       Path to write in.
-   * @param mobActions MobActions to write.
+   * @param path            Path to write in
+   * @param mobActionChains MobActionChains to write
    */
-  private void writeDefaultMobActions(String path, List<MobAction> mobActions) {
-    int counter = 1;
-    for (MobAction mobAction : mobActions) {
-      writeDefaultMobAction(path + "." + counter, mobAction);
-      counter += 1;
-    }
-  }
-
-  /**
-   * Writes the passed MobAction to the config file.
-   *
-   * @param path      Path to write in.
-   * @param mobAction MobAction to write.
-   */
-  private void writeDefaultMobAction(String path, MobAction mobAction) {
-    FileConfiguration config = getConfig();
-
-    config.addDefault(path + ".type", mobAction.getMobActionType().name());
-    config.addDefault(path + ".chance", mobAction.getChance());
-    config.addDefault(path + ".target", mobAction.getActionTarget().name());
-    switch (mobAction.getMobActionType()) {
-      case CONSOLE_COMMAND:
-        writeDefaultConsoleCommandMobAction(path, (ConsoleCommandMobAction) mobAction);
-        break;
-      case EFFECT:
-        writeDefaultEffectMobAction(path, (EffectMobAction) mobAction);
-        break;
-      case SPAWN:
-        writeDefaultSpawnMobAction(path, (SpawnMobAction) mobAction);
-        break;
-      default:
-    }
-  }
-
-  /**
-   * Writes the passed ConsoleCommandMobAction.
-   *
-   * @param path                    Path to write in.
-   * @param consoleCommandMobAction ConsoleCommandMobAction to write.
-   */
-  private void writeDefaultConsoleCommandMobAction(String path, ConsoleCommandMobAction consoleCommandMobAction) {
-    FileConfiguration config = getConfig();
-
-    config.addDefault(path + ".commands", consoleCommandMobAction.getCommands());
-    config.addDefault(path + ".delay-ticks", consoleCommandMobAction.getDelayTicks());
-  }
-
-  /**
-   * Writes the passed EffectMobAction.
-   *
-   * @param path            Path to write in.
-   * @param effectMobAction EffectMobAction to write.
-   */
-  private void writeDefaultEffectMobAction(String path, EffectMobAction effectMobAction) {
-    FileConfiguration config = getConfig();
-
-    PotionEffect effect = effectMobAction.getPotionEffect();
-    config.addDefault(path + ".effect", effect.getType().getName());
-    config.addDefault(path + ".amplifier", effect.getAmplifier() + 1);
-    config.addDefault(path + ".duration-ticks", effect.getDuration());
-    config.addDefault(path + ".particles", effect.hasParticles());
-    config.addDefault(path + ".ambient", effect.isAmbient());
-  }
-
-  /**
-   * Writes the passed SpawnMobAction.
-   *
-   * @param path           Path to write in.
-   * @param spawnMobAction SpawnMobAction to write.
-   */
-  private void writeDefaultSpawnMobAction(String path, SpawnMobAction spawnMobAction) {
-    FileConfiguration config = getConfig();
-
-    config.addDefault(path + ".mob-id", spawnMobAction.getMobActionType());
-    ConfigUtil.writeIntRange(config, path + ".amount", spawnMobAction.getAmountRange());
-    config.addDefault(path + ".radius", spawnMobAction.getRadius());
-    ConfigUtil.writeIntRange(config, path + ".delay-ticks", spawnMobAction.getDelayTicks());
+  private void writeDefaultMobActions(String path, List<MobActionChain> mobActionChains) {
+    getConfig().addDefault(path, String.join(",", mobActionChains.stream().map(MobActionChain::toString).toList()));
   }
 
   /**
@@ -236,93 +201,271 @@ public class MobConfig extends ConfigWrapper {
     }
     String displayName = mobSection.getString("display-name", "");
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
-    ConfigSound spawnSound = ConfigUtil.fetchConfigSound(config, id + ".spawn-sound");
+    ConfigSound spawnSound = computeConfigSound(mobSection.getString("spawn-sound"));
     List<ConfigParticle> onHitParticles = ConfigUtil.fetchConfigParticles(config, id + ".hit-particles");
     List<ConfigParticle> onDeathParticles = ConfigUtil.fetchConfigParticles(config, id + ".death-particles");
     IntRange experienceDrop = ConfigUtil.fetchIntRange(config, id + ".experience-drop");
-    List<MobAction> onHitActions = fetchMobActions(id + ".hit-actions");
-    List<MobAction> onShotActions = fetchMobActions(id + ".shot-actions");
-    List<MobAction> onDeathActions = fetchMobActions(id + ".death-actions");
+    List<MobActionChain> onHitActions = computeMobActionChains(mobSection.getString("events.hit", ""));
+    List<MobActionChain> onShotActions = computeMobActionChains(mobSection.getString("events.shot", ""));
+    List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death", ""));
 
     return new GTMob(id, entityType, displayName, attributes, spawnSound, onHitParticles, onDeathParticles,
         experienceDrop, onHitActions, onShotActions, onDeathActions);
   }
 
-  private List<MobAction> fetchMobActions(String path) {
-    List<MobAction> mobActions = new ArrayList<>();
-    ConfigurationSection mobActionSection = getConfig().getConfigurationSection(path);
-    if (mobActionSection == null) {
-      return mobActions;
+  /**
+   * Computes a ConfigSound from the passed String
+   *
+   * @param soundString String to compute
+   * @return Computed ConfigSound
+   */
+  private ConfigSound computeConfigSound(String soundString) {
+    String[] params = soundString.split("-");
+    if (params.length < 3) {
+      LogUtil.sendWarnLog("Not enough parameters for ConfigSound '" + soundString + "'.");
+      return null;
     }
-    for (String key : mobActionSection.getKeys(false)) {
-      MobAction mobAction = fetchMobAction(path + "." + key);
+    String soundName = params[0];
+    Sound sound;
+    try {
+      sound = Sound.valueOf(soundName);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Unknown sound '" + soundName + "' configured in '" + soundString + "'.");
+      return null;
+    }
+    float volume;
+    try {
+      volume = (float) Double.parseDouble(params[1]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid volume '" + params[1] + "' configured in '" + soundString + "'.");
+      return null;
+    }
+    float pitch;
+    try {
+      pitch = (float) Double.parseDouble(params[2]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid pitch '" + params[2] + "' configured in '" + soundString + "'.");
+      return null;
+    }
+    return new ConfigSound(sound, volume, pitch);
+  }
+
+  /**
+   * Computes the MobActionChains found in the passed String
+   *
+   * @param mobActionChainString String containing the MobActionChains
+   * @return List of found MobActionChains
+   */
+  private List<MobActionChain> computeMobActionChains(String mobActionChainString) {
+    List<MobActionChain> mobActionChains = new ArrayList<>();
+    // This list will store the MobActions as they are fetched and will then be
+    // added to a MobActionChain and be cleared
+    List<MobAction> mobActions = new ArrayList<>();
+    Pattern chanceRegex = Pattern.compile("-\\([0-9.]+\\)");
+    for (String mobActionString : mobActionChainString.split(",")) {
+      // MobAction strings should look something like this:
+      // spawnmob:skeleton1-3-10-0-(0.2)
+      //
+      // Extract the MobActionType
+      String[] typeSplit = mobActionString.split(":");
+      if (typeSplit.length < 2) {
+        LogUtil.sendWarnLog("Invalid Mob Action String '" + mobActionString + "'.");
+        continue;
+      }
+      MobActionType mobActionType = MobActionType.fromName(typeSplit[0]);
+      if (mobActionType == null) {
+        LogUtil.sendWarnLog(
+            "Invalid Mob Action Type '" + typeSplit[0] + "' found in Mob Action '" + mobActionString + "'.");
+        continue;
+      }
+      // Check if the chance of the MobActionChain is included in the current
+      // MobAction by search for -(CHANCE)
+      Matcher chanceMatcher = chanceRegex.matcher(mobActionString);
+      Double chance = null;
+      if (chanceMatcher.find()) {
+        String chanceString = chanceMatcher.group(0).replace("-(", "").replace(")", "");
+        try {
+          chance = Double.valueOf(chanceString);
+        } catch (Exception e) {
+          e.printStackTrace();
+          continue;
+        }
+        if (chance == null || chance < 0 || chance > 1) {
+          LogUtil.sendWarnLog("Invalid chance for MobActionChain '" + chanceString + "'.");
+          continue;
+        }
+        mobActionString = mobActionString.replaceAll(chanceRegex.pattern(), "");
+      }
+      String[] params = String.join(" ", Arrays.copyOfRange(typeSplit, 1, typeSplit.length)).split("-");
+      MobAction mobAction = null;
+      switch (mobActionType) {
+        case CONSOLE_COMMAND:
+          mobAction = computeConsoleCommandMobAction(params);
+          break;
+        case EFFECT:
+          mobAction = computeEffectMobAction(params);
+          break;
+        case SPAWN:
+          mobAction = computeSpawnMobAction(params);
+          break;
+        case SUICIDE:
+          mobAction = computeSuicideMobAction(params);
+          break;
+        default:
+          continue;
+      }
       if (mobAction == null) {
         continue;
       }
       mobActions.add(mobAction);
+      if (chance == null) {
+        continue;
+      }
+      // Chance was specified, create a MobActionChain with it
+      mobActionChains.add(new MobActionChain(new ArrayList<>(mobActions), chance));
+      mobActions.clear();
     }
-    return mobActions;
+    if (!mobActions.isEmpty()) {
+      mobActionChains.add(new MobActionChain(mobActions, 1));
+    }
+    return mobActionChains;
   }
 
   /**
-   * Fetches the MobAction configured in the passed path.
+   * Computes a ConsoleCommandMobAction based on the passed parameters
    *
-   * @param path Path to search in.
-   * @return Configured MobAction.
+   * @param params Parameters to compute
+   * @return Computed ConsoleCommandMobAction
    */
-  private MobAction fetchMobAction(String path) {
-    ConfigurationSection mobActionSection = getConfig().getConfigurationSection(path);
-    if (mobActionSection == null) {
+  private ConsoleCommandMobAction computeConsoleCommandMobAction(String[] params) {
+    if (params.length < 2) {
+      LogUtil.sendWarnLog("Not enough parameters provided for ConsoleCommandMobAction. Got: " +
+          Arrays.toString(params));
       return null;
     }
-    double chance = mobActionSection.getDouble("chance");
-    String mobActionTargetName = mobActionSection.getString("target", "");
-    MobActionTarget mobActionTarget = MobActionTarget.fromName(mobActionTargetName);
+    List<String> commands = Arrays.asList(params[0].split(";"));
+    if (commands.isEmpty()) {
+      LogUtil.sendWarnLog("Couldn't find commands for ConsoleCommandMobAction from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    long delayTicks;
+    try {
+      delayTicks = Long.valueOf(params[1]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid delay ticks '" + params[1] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    return new ConsoleCommandMobAction(commands, delayTicks);
+  }
+
+  /**
+   * Computes an EffectMobAction from the passed parameters
+   *
+   * @param params Parameters to compute
+   * @return Computed EffecTmobAction
+   */
+  private EffectMobAction computeEffectMobAction(String[] params) {
+    if (params.length < 4) {
+      LogUtil.sendWarnLog("Not enough parameters provided for EffectMobAction. Got: " +
+          Arrays.toString(params));
+      return null;
+    }
+    PotionEffectType potionEffectType;
+    try {
+      potionEffectType = PotionEffectType.getByName(params[0]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Unknown Potion Effect Type '" + params[0] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    int amplifier;
+    try {
+      amplifier = Integer.parseInt(params[1]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid potion level '" + params[1] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    int durationTicks;
+    try {
+      durationTicks = Integer.parseInt(params[2]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid potion duration '" + params[2] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    MobActionTarget mobActionTarget = MobActionTarget.fromName(params[3]);
     if (mobActionTarget == null) {
-      LogUtil.sendWarnLog("Unknown Mob Action Target '" + mobActionTargetName + "' configured in '" + path + "'.");
+      LogUtil.sendWarnLog("Unknown MobActionTarget '" + params[3] + "' from parameters: " +
+          Arrays.toString(params));
       return null;
     }
-    String mobActionTypeName = mobActionSection.getString("type", "");
-    MobActionType mobActionType = MobActionType.fromName(mobActionTypeName);
-    if (mobActionTypeName == null) {
-      LogUtil.sendWarnLog("Unknown Mob Action Type '" + mobActionTargetName + "' configured in '" + path + "'.");
+    return new EffectMobAction(mobActionTarget, new PotionEffect(
+        potionEffectType,
+        durationTicks,
+        amplifier - 1));
+  }
+
+  /**
+   * Computes a SpawnMobAction from the passed parameters
+   *
+   * @param params Parameters to compute
+   * @return Computed SpawnMobAction
+   */
+  private SpawnMobAction computeSpawnMobAction(String[] params) {
+    if (params.length < 4) {
+      LogUtil.sendWarnLog("Not enough parameters provided for SpawnMobAction. Got: " +
+          Arrays.toString(params));
       return null;
     }
-    IntRange delayTicks;
-    switch (mobActionType) {
-      case CONSOLE_COMMAND:
-        List<String> commands = mobActionSection.getStringList("commands");
-        delayTicks = ConfigUtil.fetchIntRange(getConfig(), path + ".delay-ticks");
-
-        return new ConsoleCommandMobAction(chance, commands, delayTicks);
-      case EFFECT:
-        String potionEffectTypeName = mobActionSection.getString("effect", "");
-        PotionEffectType potionEffectType;
-        try {
-          potionEffectType = PotionEffectType.getByName(potionEffectTypeName);
-        } catch (Exception e) {
-          LogUtil
-              .sendWarnLog("Unknown Potion Effect Type '" + potionEffectTypeName + "' configured in '" + path + "'.");
-          return null;
-        }
-        int amplifier = mobActionSection.getInt("amplifier") - 1;
-        int durationTicks = mobActionSection.getInt("duration-ticks");
-        boolean particles = mobActionSection.getBoolean("particles");
-        boolean ambient = mobActionSection.getBoolean("ambient");
-
-        return new EffectMobAction(chance, mobActionTarget,
-            new PotionEffect(potionEffectType, durationTicks, amplifier, ambient, particles));
-      case SPAWN:
-        String mobId = mobActionSection.getString("mob-id", "");
-        IntRange amountRange = ConfigUtil.fetchIntRange(getConfig(), path + ".amount");
-        double radius = mobActionSection.getDouble("radius");
-        delayTicks = ConfigUtil.fetchIntRange(getConfig(), path + ".delay-ticks");
-
-        return new SpawnMobAction(chance, mobId, amountRange, radius, delayTicks);
-      case SUICIDE:
-        return new SuicideMobAction(chance, mobActionTarget);
-      default:
-        return null;
+    String mobId = params[0];
+    int amount;
+    try {
+      amount = Integer.parseInt(params[1]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid amount '" + params[1] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
     }
+    double radius;
+    try {
+      radius = Double.parseDouble(params[2]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid amount '" + params[2] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    long delayTicks;
+    try {
+      delayTicks = Long.parseLong(params[3]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid amount '" + params[3] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    return new SpawnMobAction(mobId, amount, radius, delayTicks);
+  }
+
+  /**
+   * Computes a SuicideMobAction from the passed parameters
+   *
+   * @param params Parameters to compute
+   * @return Computed SuicideMobAction
+   */
+  private SuicideMobAction computeSuicideMobAction(String[] params) {
+    if (params.length < 1) {
+      LogUtil.sendWarnLog("Not enough parameters provided for SuicideMobAction. Got: " +
+          Arrays.toString(params));
+      return null;
+    }
+    MobActionTarget mobActionTarget = MobActionTarget.fromName(params[0]);
+    if (mobActionTarget == null) {
+      LogUtil.sendWarnLog("Unknown MobActionTarget '" + params[0] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    return new SuicideMobAction(mobActionTarget);
   }
 }

@@ -14,7 +14,7 @@ public enum MobActionType {
    */
   public static MobActionType fromName(String name) {
     try {
-      return MobActionType.valueOf(name);
+      return MobActionType.valueOf(name.toUpperCase());
     } catch (Exception e) {
       return null;
     }

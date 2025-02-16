@@ -24,7 +24,7 @@ public class PlaceholderUtil {
       text = text.replace("%player%", player.getName());
     }
     if (isPapiInstalled) {
-      PlaceholderAPI.setPlaceholders(player, text);
+      text = PlaceholderAPI.setPlaceholders(player, text);
     }
     return text;
   }

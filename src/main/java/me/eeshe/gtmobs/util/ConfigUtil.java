@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Map.Entry;
 
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -181,11 +180,7 @@ public class ConfigUtil {
     if (configParticles == null) {
       return;
     }
-    int counter = 1;
-    for (ConfigParticle configParticle : configParticles) {
-      writeConfigParticle(config, path + "." + counter, configParticle);
-      counter += 1;
-    }
+    config.set(path, configParticles.stream().map(ConfigParticle::toString).toList());
   }
 
   /**
@@ -199,17 +194,7 @@ public class ConfigUtil {
     if (configParticle == null) {
       return;
     }
-    config.set(path + ".particle", configParticle.getParticle().name());
-    config.set(path + ".enable", configParticle.isEnabled());
-    config.set(path + ".amount", configParticle.getAmount());
-    config.set(path + ".x-off-set", configParticle.getxOffSet());
-    config.set(path + ".y-off-set", configParticle.getyOffSet());
-    config.set(path + ".z-off-set", configParticle.getzOffSet());
-    config.set(path + ".extra", configParticle.getExtra());
-    if (configParticle.getData() != null) {
-      Object defaultData = configParticle.getData();
-      config.set(path + ".data", defaultData.toString());
-    }
+    config.set(path, configParticle.toString());
   }
 
   /**
@@ -256,20 +241,8 @@ public class ConfigUtil {
       LogUtil.sendWarnLog("Unknown particle '" + particleName + "' configured for '" + path + "'.");
       return null;
     }
-    boolean enabled = particleSection.getBoolean("enable");
     int amount = particleSection.getInt("amount");
-    double xOffSet = particleSection.getDouble("x-off-set");
-    double yOffSet = particleSection.getDouble("y-off-set");
-    double zOffSet = particleSection.getDouble("z-off-set");
-    double extra = particleSection.getDouble("extra");
-    String dataString = particleSection.getString("data");
-    Object data = null;
-    if (dataString != null) {
-      if (particle.getDataType().equals(Float.class)) {
-        data = (float) particleSection.getDouble("data");
-      }
-    }
-    return new ConfigParticle(enabled, particle, amount, xOffSet, yOffSet, zOffSet, extra, data);
+    return new ConfigParticle(particle, amount);
   }
 
   /**

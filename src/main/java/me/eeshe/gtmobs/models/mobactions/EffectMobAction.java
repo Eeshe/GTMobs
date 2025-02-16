@@ -1,5 +1,7 @@
 package me.eeshe.gtmobs.models.mobactions;
 
+import java.util.List;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
@@ -8,22 +10,28 @@ public class EffectMobAction extends MobAction {
 
   private final PotionEffect potionEffect;
 
-  public EffectMobAction(double chance, MobActionTarget actionTarget, PotionEffect potionEffect) {
-    super(chance, actionTarget);
+  public EffectMobAction(MobActionTarget actionTarget, PotionEffect potionEffect) {
+    super(actionTarget);
     this.potionEffect = potionEffect;
   }
 
   @Override
-  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
-    if (!super.execute(gtmobEntity, attacker)) {
-      return false;
-    }
+  public void execute(LivingEntity gtmobEntity, Entity attacker) {
     LivingEntity potionTarget = findActionTarget(gtmobEntity, attacker);
     if (potionTarget == null) {
-      return false;
+      return;
     }
     potionTarget.addPotionEffect(potionEffect, true);
-    return true;
+    return;
+  }
+
+  @Override
+  public String toString() {
+    return getMobActionType().name() + ":" + String.join("-", List.of(
+        potionEffect.getType().getName(),
+        String.valueOf(potionEffect.getAmplifier() + 1),
+        String.valueOf(potionEffect.getDuration()),
+        getActionTarget().name()));
   }
 
   public PotionEffect getPotionEffect() {

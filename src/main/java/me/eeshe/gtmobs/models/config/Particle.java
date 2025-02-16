@@ -1,38 +1,25 @@
 package me.eeshe.gtmobs.models.config;
 
-import me.eeshe.gtmobs.GTMobs;
-import me.eeshe.gtmobs.files.config.ConfigWrapper;
-import me.eeshe.gtmobs.util.ConfigUtil;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+
+import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.files.config.ConfigWrapper;
+import me.eeshe.gtmobs.util.ConfigUtil;
 
 public enum Particle {
   ;
 
   private static final ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "particles.yml");
   private final String path;
-  private final boolean defaultEnabled;
   private final org.bukkit.Particle defaultParticle;
   private final int defaultAmount;
-  private final double defaultXOffSet;
-  private final double defaultYOffSet;
-  private final double defaultZOffSet;
-  private final double defaultExtra;
-  private final Object defaultData;
 
-  Particle(String path, boolean defaultEnabled, org.bukkit.Particle defaultParticle, int defaultAmount,
-      double defaultXOffSet, double defaultYOffSet, double defaultZOffSet, double defaultExtra, Object defaultData) {
+  Particle(String path, org.bukkit.Particle defaultParticle, int defaultAmount) {
     this.path = path;
-    this.defaultEnabled = defaultEnabled;
     this.defaultParticle = defaultParticle;
     this.defaultAmount = defaultAmount;
-    this.defaultXOffSet = defaultXOffSet;
-    this.defaultYOffSet = defaultYOffSet;
-    this.defaultZOffSet = defaultZOffSet;
-    this.defaultExtra = defaultExtra;
-    this.defaultData = defaultData;
   }
 
   /**
@@ -74,8 +61,7 @@ public enum Particle {
   }
 
   private ConfigParticle createDefaultConfigParticle() {
-    return new ConfigParticle(defaultEnabled, defaultParticle, defaultAmount, defaultXOffSet, defaultYOffSet,
-        defaultZOffSet, defaultExtra, defaultData);
+    return new ConfigParticle(defaultParticle, defaultAmount);
   }
 
   public String getPath() {
@@ -86,35 +72,7 @@ public enum Particle {
     return defaultParticle;
   }
 
-  public boolean getDefaultEnabled() {
-    return defaultEnabled;
-  }
-
   public int getDefaultAmount() {
     return defaultAmount;
-  }
-
-  public double getDefaultXOffSet() {
-    return defaultXOffSet;
-  }
-
-  public double getDefaultYOffSet() {
-    return defaultYOffSet;
-  }
-
-  public double getDefaultZOffSet() {
-    return defaultZOffSet;
-  }
-
-  public double getDefaultExtra() {
-    return defaultExtra;
-  }
-
-  public Object getDefaultData() {
-    return defaultData;
-  }
-
-  public boolean isDefaultEnabled() {
-    return defaultEnabled;
   }
 }

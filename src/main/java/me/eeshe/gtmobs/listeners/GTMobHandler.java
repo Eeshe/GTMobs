@@ -16,6 +16,7 @@ import me.eeshe.gtmobs.events.GTMobDeathEvent;
 import me.eeshe.gtmobs.models.ActiveMob;
 import me.eeshe.gtmobs.models.GTMob;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
+import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 
 public class GTMobHandler implements Listener {
   private final GTMobs plugin;
@@ -56,7 +57,9 @@ public class GTMobHandler implements Listener {
     ActiveMob activeMob = event.getActiveMob();
     GTMob gtMob = activeMob.getGTMob();
 
-    gtMob.executeMobActions(gtMob.getOnHitActions(), activeMob.getLivingEntity(), event.getDamager());
+    for (MobActionChain mobActionChain : gtMob.getOnHitActions()) {
+      mobActionChain.attemptExecution(activeMob.getLivingEntity(), event.getDamager());
+    }
     Location location = activeMob.getLivingEntity().getLocation();
     for (ConfigParticle configParticle : gtMob.getOnHitParticles()) {
       configParticle.spawn(location);
@@ -91,9 +94,12 @@ public class GTMobHandler implements Listener {
     LivingEntity livingEntity = activeMob.getLivingEntity();
     Location location = livingEntity.getLocation();
     GTMob gtMob = activeMob.getGTMob();
+
+    for (MobActionChain mobActionChain : gtMob.getOnDeathActions()) {
+      mobActionChain.attemptExecution(livingEntity, event.getKiller());
+    }
     for (ConfigParticle configParticle : gtMob.getOnDeathParticles()) {
       configParticle.spawn(location);
     }
-    gtMob.executeMobActions(gtMob.getOnDeathActions(), livingEntity, event.getKiller());
   }
 }

@@ -4,17 +4,14 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 
-public class MobAction {
-  private final double chance;
+public abstract class MobAction {
   private final MobActionTarget actionTarget;
 
-  public MobAction(double chance) {
-    this.chance = chance;
+  public MobAction() {
     this.actionTarget = null;
   }
 
-  public MobAction(double chance, MobActionTarget actionTarget) {
-    this.chance = chance;
+  public MobAction(MobActionTarget actionTarget) {
     this.actionTarget = actionTarget;
   }
 
@@ -40,22 +37,11 @@ public class MobAction {
   /**
    * Executes the MobAction.
    *
-   * @param gtmobEntity GTMob that is executing the action.
+   * @param gtMobEntity GTMob that is executing the action.
    * @param attacker    Entity that is attacking the GTMob.
    * @return True if the MobAction was executed.
    */
-  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
-    return rollChance();
-  }
-
-  /**
-   * Rolls the chance for the MobAction.
-   *
-   * @return True if the action should be executed, false if not.
-   */
-  public boolean rollChance() {
-    return Math.random() < chance;
-  }
+  public abstract void execute(LivingEntity gtMobEntity, Entity attacker);
 
   public MobActionType getMobActionType() {
     if (this instanceof ConsoleCommandMobAction) {
@@ -71,12 +57,9 @@ public class MobAction {
     }
   }
 
-  public double getChance() {
-    return chance;
-  }
-
   public MobActionTarget getActionTarget() {
     return actionTarget;
   }
 
+  public abstract String toString();
 }

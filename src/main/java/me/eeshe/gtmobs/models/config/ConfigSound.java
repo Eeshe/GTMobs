@@ -17,6 +17,13 @@ public class ConfigSound {
     this.pitch = pitch;
   }
 
+  public ConfigSound(Sound sound, float volume, float pitch) {
+    this.enabled = true;
+    this.sound = sound;
+    this.volume = volume;
+    this.pitch = pitch;
+  }
+
   public void play(Player player) {
     player.playSound(player.getLocation(), sound, volume, pitch);
   }
@@ -27,6 +34,10 @@ public class ConfigSound {
 
   public void play(Player player, Location location) {
     player.playSound(location, sound, volume, pitch);
+  }
+
+  public String toString() {
+    return sound.name() + "-" + volume + "-" + pitch;
   }
 
   public Sound getSound() {

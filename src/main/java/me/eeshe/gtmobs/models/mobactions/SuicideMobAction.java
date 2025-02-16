@@ -5,20 +5,21 @@ import org.bukkit.entity.LivingEntity;
 
 public class SuicideMobAction extends MobAction {
 
-  public SuicideMobAction(double chance, MobActionTarget actionTarget) {
-    super(chance, actionTarget);
+  public SuicideMobAction(MobActionTarget actionTarget) {
+    super(actionTarget);
   }
 
   @Override
-  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
-    if (!super.execute(gtmobEntity, attacker)) {
-      return false;
-    }
+  public void execute(LivingEntity gtmobEntity, Entity attacker) {
     LivingEntity target = findActionTarget(gtmobEntity, attacker);
     if (target == null) {
-      return false;
+      return;
     }
     target.setHealth(0);
-    return true;
+  }
+
+  @Override
+  public String toString() {
+    return getMobActionType().name() + ":" + getActionTarget().name();
   }
 }

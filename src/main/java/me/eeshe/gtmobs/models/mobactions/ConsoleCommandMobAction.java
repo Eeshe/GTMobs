@@ -13,35 +13,36 @@ import me.eeshe.gtmobs.util.CommandUtil;
 
 public class ConsoleCommandMobAction extends MobAction {
   private final List<String> commands;
-  private final IntRange delayTicks;
+  private final long delayTicks;
 
-  public ConsoleCommandMobAction(double chance, List<String> commands,
-      IntRange delayTicks) {
-    super(chance);
+  public ConsoleCommandMobAction(List<String> commands, long delayTicks) {
     this.commands = commands;
     this.delayTicks = delayTicks;
   }
 
   @Override
-  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
-    if (!super.execute(gtmobEntity, attacker)) {
-      return false;
-    }
+  public void execute(LivingEntity gtmobEntity, Entity attacker) {
     Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
       OfflinePlayer attackerPlayer = null;
       if (attacker instanceof OfflinePlayer) {
         attackerPlayer = (OfflinePlayer) attacker;
       }
       CommandUtil.executeCommands(attackerPlayer, commands);
-    }, delayTicks.generateRandom());
-    return true;
+    }, delayTicks);
+  }
+
+  @Override
+  public String toString() {
+    return getMobActionType().name() + ":" + String.join("-", List.of(
+        String.join(";", commands),
+        String.valueOf(delayTicks)));
   }
 
   public List<String> getCommands() {
     return commands;
   }
 
-  public IntRange getDelayTicks() {
+  public long getDelayTicks() {
     return delayTicks;
   }
 }
