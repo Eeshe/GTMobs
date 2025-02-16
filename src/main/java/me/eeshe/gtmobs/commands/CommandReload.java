@@ -10,7 +10,7 @@ public class CommandReload extends PluginCommand {
     super(plugin, parentPluginCommand);
 
     setName("reload");
-    setPermission("plugintemplate.reload");
+    setPermission("gtmobs.admin");
     setInfoMessage(Message.RELOAD_COMMAND_INFO);
     setUsageMessage(Message.RELOAD_COMMAND_USAGE);
   }

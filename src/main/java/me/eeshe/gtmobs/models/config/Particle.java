@@ -45,18 +45,7 @@ public enum Particle {
   private static void writeDefaults() {
     FileConfiguration config = CONFIG_WRAPPER.getConfig();
     for (Particle particle : Particle.values()) {
-      String path = particle.getPath();
-      config.addDefault(path + ".particle", particle.getDefaultParticle().name());
-      config.addDefault(path + ".enable", particle.getDefaultEnabled());
-      config.addDefault(path + ".amount", particle.getDefaultAmount());
-      config.addDefault(path + ".x-off-set", particle.getDefaultXOffSet());
-      config.addDefault(path + ".y-off-set", particle.getDefaultYOffSet());
-      config.addDefault(path + ".z-off-set", particle.getDefaultZOffSet());
-      config.addDefault(path + ".extra", particle.getDefaultExtra());
-      if (particle.getDefaultData() != null) {
-        Object defaultData = particle.getDefaultData();
-        config.addDefault(path + ".data", defaultData.toString());
-      }
+      ConfigUtil.writeConfigParticle(config, particle.getPath(), particle.createDefaultConfigParticle());
     }
     config.options().copyDefaults(true);
 

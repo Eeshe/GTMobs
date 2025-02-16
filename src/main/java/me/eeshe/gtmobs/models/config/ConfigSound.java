@@ -1,9 +1,21 @@
 package me.eeshe.gtmobs.models.config;
 
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-public record ConfigSound(org.bukkit.Sound sound, boolean enabled, float volume, float pitch) {
+public class ConfigSound {
+  private final Sound sound;
+  private final boolean enabled;
+  private final float volume;
+  private final float pitch;
+
+  public ConfigSound(Sound sound, boolean enabled, float volume, float pitch) {
+    this.sound = sound;
+    this.enabled = enabled;
+    this.volume = volume;
+    this.pitch = pitch;
+  }
 
   public void play(Player player) {
     player.playSound(player.getLocation(), sound, volume, pitch);
@@ -16,4 +28,21 @@ public record ConfigSound(org.bukkit.Sound sound, boolean enabled, float volume,
   public void play(Player player, Location location) {
     player.playSound(location, sound, volume, pitch);
   }
+
+  public Sound getSound() {
+    return sound;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public float getVolume() {
+    return volume;
+  }
+
+  public float getPitch() {
+    return pitch;
+  }
+
 }

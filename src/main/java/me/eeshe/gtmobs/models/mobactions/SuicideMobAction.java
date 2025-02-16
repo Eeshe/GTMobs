@@ -1,5 +1,6 @@
 package me.eeshe.gtmobs.models.mobactions;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 public class SuicideMobAction extends MobAction {
@@ -9,11 +10,15 @@ public class SuicideMobAction extends MobAction {
   }
 
   @Override
-  public void execute(LivingEntity gtmobEntity, LivingEntity attacker) {
+  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
+    if (!super.execute(gtmobEntity, attacker)) {
+      return false;
+    }
     LivingEntity target = findActionTarget(gtmobEntity, attacker);
     if (target == null) {
-      return;
+      return false;
     }
     target.setHealth(0);
+    return true;
   }
 }

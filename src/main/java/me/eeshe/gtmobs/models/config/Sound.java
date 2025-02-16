@@ -41,11 +41,7 @@ public enum Sound {
   private static void writeDefaults() {
     FileConfiguration config = CONFIG_WRAPPER.getConfig();
     for (Sound sound : Sound.values()) {
-      String path = sound.getPath();
-      config.addDefault(path + ".sound", sound.getDefaultSound().name());
-      config.addDefault(path + ".enable", sound.getDefaultEnabled());
-      config.addDefault(path + ".volume", sound.getDefaultVolume());
-      config.addDefault(path + ".pitch", sound.getDefaultPitch());
+      ConfigUtil.writeConfigSound(config, sound.getPath(), sound.createDefaultConfigSound());
     }
     config.options().copyDefaults(true);
 
@@ -63,11 +59,12 @@ public enum Sound {
    * @param sender CommandSender the sound will be played for.
    */
   public void play(CommandSender sender) {
-    if (!(sender instanceof Player player))
+    if (!(sender instanceof Player))
       return;
 
     ConfigSound configSound = fetchConfigSound();
-    player.playSound(player.getLocation(), configSound.sound(), configSound.volume(), configSound.pitch());
+    Player player = (Player) sender;
+    player.playSound(player.getLocation(), configSound.getSound(), configSound.getVolume(), configSound.getPitch());
   }
 
   /**
@@ -80,7 +77,7 @@ public enum Sound {
     if (location.getWorld() == null)
       return;
 
-    location.getWorld().playSound(location, configSound.sound(), configSound.volume(), configSound.pitch());
+    location.getWorld().playSound(location, configSound.getSound(), configSound.getVolume(), configSound.getPitch());
   }
 
   /**

@@ -5,8 +5,28 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-public record ConfigParticle(boolean enabled, Particle particle, int amount, double xOffSet, double yOffSet,
-    double zOffSet, double extra, Object data) {
+public class ConfigParticle {
+
+  private final boolean enabled;
+  private final Particle particle;
+  private final int amount;
+  private final double xOffSet;
+  private final double yOffSet;
+  private final double zOffSet;
+  private final double extra;
+  private final Object data;
+
+  public ConfigParticle(boolean enabled, Particle particle, int amount, double xOffSet, double yOffSet, double zOffSet,
+      double extra, Object data) {
+    this.enabled = enabled;
+    this.particle = particle;
+    this.amount = amount;
+    this.xOffSet = xOffSet;
+    this.yOffSet = yOffSet;
+    this.zOffSet = zOffSet;
+    this.extra = extra;
+    this.data = data;
+  }
 
   /**
    * Spawns the ConfigParticle at the passed location.
@@ -37,5 +57,37 @@ public record ConfigParticle(boolean enabled, Particle particle, int amount, dou
       return;
 
     player.spawnParticle(particle, location, amount, xOffSet, yOffSet, zOffSet, extra, data);
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public Particle getParticle() {
+    return particle;
+  }
+
+  public int getAmount() {
+    return amount;
+  }
+
+  public double getxOffSet() {
+    return xOffSet;
+  }
+
+  public double getyOffSet() {
+    return yOffSet;
+  }
+
+  public double getzOffSet() {
+    return zOffSet;
+  }
+
+  public double getExtra() {
+    return extra;
+  }
+
+  public Object getData() {
+    return data;
   }
 }

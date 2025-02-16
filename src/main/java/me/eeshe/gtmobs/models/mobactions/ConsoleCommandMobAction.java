@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import me.eeshe.gtmobs.GTMobs;
@@ -14,14 +15,18 @@ public class ConsoleCommandMobAction extends MobAction {
   private final List<String> commands;
   private final IntRange delayTicks;
 
-  public ConsoleCommandMobAction(double chance, List<String> commands, IntRange delayTicks) {
+  public ConsoleCommandMobAction(double chance, List<String> commands,
+      IntRange delayTicks) {
     super(chance);
     this.commands = commands;
     this.delayTicks = delayTicks;
   }
 
   @Override
-  public void execute(LivingEntity gtmobEntity, LivingEntity attacker) {
+  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
+    if (!super.execute(gtmobEntity, attacker)) {
+      return false;
+    }
     Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
       OfflinePlayer attackerPlayer = null;
       if (attacker instanceof OfflinePlayer) {
@@ -29,5 +34,14 @@ public class ConsoleCommandMobAction extends MobAction {
       }
       CommandUtil.executeCommands(attackerPlayer, commands);
     }, delayTicks.generateRandom());
+    return true;
+  }
+
+  public List<String> getCommands() {
+    return commands;
+  }
+
+  public IntRange getDelayTicks() {
+    return delayTicks;
   }
 }

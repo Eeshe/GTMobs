@@ -1,22 +1,27 @@
 package me.eeshe.gtmobs.util;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import me.eeshe.gtmobs.models.config.*;
-import org.bukkit.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Map.Entry;
+
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.*;
+import me.eeshe.gtmobs.models.config.ConfigExplosion;
+import me.eeshe.gtmobs.models.config.ConfigParticle;
+import me.eeshe.gtmobs.models.config.ConfigSound;
+import me.eeshe.gtmobs.models.config.IntRange;
 
 public class ConfigUtil {
 
@@ -124,6 +129,23 @@ public class ConfigUtil {
   }
 
   /**
+   * Writes the passed ConfigSound to the passed configuration file.
+   *
+   * @param config      Config file to write.
+   * @param path        Path to write in.
+   * @param configSound ConfigSound to write.
+   */
+  public static void writeConfigSound(FileConfiguration config, String path, ConfigSound configSound) {
+    if (configSound == null) {
+      return;
+    }
+    config.set(path + ".sound", configSound.getSound().name());
+    config.set(path + ".enable", configSound.isEnabled());
+    config.set(path + ".volume", configSound.getVolume());
+    config.set(path + ".pitch", configSound.getPitch());
+  }
+
+  /**
    * Fetches the configured ConfigSound.
    *
    * @return Configured ConfigSound.
@@ -146,6 +168,72 @@ public class ConfigUtil {
     float pitch = (float) config.getDouble(path + ".pitch");
 
     return new ConfigSound(sound, enabled, volume, pitch);
+  }
+
+  /**
+   * Writes the passed list of ConfigParticles to the passed config file and path.
+   *
+   * @param config          Config file to write.
+   * @param path            Path to write in.
+   * @param configParticles ConfigParticle to write.
+   */
+  public static void writeConfigParticles(FileConfiguration config, String path, List<ConfigParticle> configParticles) {
+    if (configParticles == null) {
+      return;
+    }
+    int counter = 1;
+    for (ConfigParticle configParticle : configParticles) {
+      writeConfigParticle(config, path + "." + counter, configParticle);
+      counter += 1;
+    }
+  }
+
+  /**
+   * Writes the passed ConfigParticle to the passed config file and path.
+   *
+   * @param config         Config file to write.
+   * @param path           Path to write in.
+   * @param configParticle ConfigParticle to write.
+   */
+  public static void writeConfigParticle(FileConfiguration config, String path, ConfigParticle configParticle) {
+    if (configParticle == null) {
+      return;
+    }
+    config.set(path + ".particle", configParticle.getParticle().name());
+    config.set(path + ".enable", configParticle.isEnabled());
+    config.set(path + ".amount", configParticle.getAmount());
+    config.set(path + ".x-off-set", configParticle.getxOffSet());
+    config.set(path + ".y-off-set", configParticle.getyOffSet());
+    config.set(path + ".z-off-set", configParticle.getzOffSet());
+    config.set(path + ".extra", configParticle.getExtra());
+    if (configParticle.getData() != null) {
+      Object defaultData = configParticle.getData();
+      config.set(path + ".data", defaultData.toString());
+    }
+  }
+
+  /**
+   * Fetches the list of ConfigParticles configured in the passed config file and
+   * path.
+   *
+   * @param config Configuration file to search in.
+   * @param path   Path to search in.
+   * @return List of the found ConfigParticles.
+   */
+  public static List<ConfigParticle> fetchConfigParticles(FileConfiguration config, String path) {
+    List<ConfigParticle> configParticles = new ArrayList<>();
+    ConfigurationSection particleSection = config.getConfigurationSection(path);
+    if (particleSection == null) {
+      return configParticles;
+    }
+    for (String key : particleSection.getKeys(false)) {
+      ConfigParticle configParticle = fetchConfigParticle(config, path + "." + key);
+      if (configParticle == null) {
+        continue;
+      }
+      configParticles.add(configParticle);
+    }
+    return configParticles;
   }
 
   /**
@@ -185,27 +273,6 @@ public class ConfigUtil {
   }
 
   /**
-   * Fetches the configured ConfigTitle.
-   *
-   * @param config Config the title will be fetched from.
-   * @param path   Configuration path to search.
-   * @return Configured ConfigTitle.
-   */
-  public static ConfigTitle fetchConfigTitle(FileConfiguration config, String path) {
-    ConfigurationSection titleSection = config.getConfigurationSection(path);
-    if (titleSection == null)
-      return null;
-
-    String title = titleSection.getString("title");
-    String subtitle = titleSection.getString("subtitle");
-    int fadeInTicks = titleSection.getInt("fade-in");
-    int durationTicks = titleSection.getInt("duration");
-    int fadeOutTicks = titleSection.getInt("fade-out");
-
-    return new ConfigTitle(title, subtitle, fadeInTicks, durationTicks, fadeOutTicks);
-  }
-
-  /**
    * Fetches the configured material in the passed path within the passed config
    * file.
    *
@@ -223,7 +290,7 @@ public class ConfigUtil {
     return generatedItem;
   }
 
-  public static void writeIntRange(IntRange intRange, FileConfiguration config, String path) {
+  public static void writeIntRange(FileConfiguration config, String path, IntRange intRange) {
     config.set(path + ".min", intRange.getMin());
     config.set(path + ".max", intRange.getMax());
   }
@@ -270,12 +337,55 @@ public class ConfigUtil {
       if (value instanceof Map<?, ?>) {
         Map<?, ?> map = (Map<?, ?>) value;
         writeAdditionalConfigs(config, newPath, (Map<?, Object>) map);
-      } else if (value instanceof IntRange intRange) {
+      } else if (value instanceof IntRange) {
+        IntRange intRange = (IntRange) value;
         config.addDefault(newPath + ".min", intRange.getMin());
         config.addDefault(newPath + ".max", intRange.getMax());
       } else {
         config.addDefault(newPath, entry.getValue());
       }
     }
+  }
+
+  /**
+   * Writes the passed Map of attributes to the passed config file.
+   *
+   * @param config       Config file to write.
+   * @param path         Path to write the attributes in.
+   * @param attributeMap Map of attributes to write.
+   */
+  public static void writeAttributeMap(FileConfiguration config, String path,
+      Map<Attribute, Double> attributeMap) {
+    if (attributeMap == null) {
+      return;
+    }
+    for (Entry<Attribute, Double> entry : attributeMap.entrySet()) {
+      config.set(path + "." + entry.getKey(), entry.getValue());
+    }
+  }
+
+  /**
+   * Fetches the attributes Map stored in the passed config file and path.
+   *
+   * @param config Configuration file to search.
+   * @param path   Path to search in.
+   * @return The fetched Attribute Map.
+   */
+  public static Map<Attribute, Double> fetchAttributeMap(FileConfiguration config, String path) {
+    Map<Attribute, Double> attributeMap = new HashMap<>();
+    ConfigurationSection attributeSection = config.getConfigurationSection(path);
+    if (attributeSection == null) {
+      return attributeMap;
+    }
+    for (String attributeName : attributeSection.getKeys(false)) {
+      try {
+        Attribute attribute = Attribute.valueOf(attributeName);
+        attributeMap.put(attribute, attributeSection.getDouble(attributeName));
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Unknown attribute '" + attributeName + "' found in path '" + path + "'.");
+        continue;
+      }
+    }
+    return attributeMap;
   }
 }

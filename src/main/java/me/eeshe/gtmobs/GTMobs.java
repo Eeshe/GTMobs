@@ -6,7 +6,11 @@ import me.eeshe.gtmobs.commands.PluginCommand;
 import me.eeshe.gtmobs.commands.GTMobsCommand;
 import me.eeshe.gtmobs.files.config.ConfigWrapper;
 import me.eeshe.gtmobs.files.config.MainConfig;
+import me.eeshe.gtmobs.files.config.MobConfig;
+import me.eeshe.gtmobs.listeners.GTMobHandler;
+import me.eeshe.gtmobs.managers.ActiveMobManager;
 import me.eeshe.gtmobs.managers.DataManager;
+import me.eeshe.gtmobs.managers.GTMobManager;
 import me.eeshe.gtmobs.models.config.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
@@ -30,6 +34,10 @@ public class GTMobs extends JavaPlugin {
   private final List<DataManager> dataManagers = new ArrayList<>();
 
   private MainConfig mainConfig;
+  private MobConfig mobConfig;
+
+  private GTMobManager gtMobManager;
+  private ActiveMobManager activeMobManager;
 
   private CommandExecutor commandExecutor;
   private CommandCompleter commandCompleter;
@@ -59,16 +67,16 @@ public class GTMobs extends JavaPlugin {
    */
   public void setupFiles() {
     this.mainConfig = new MainConfig(this);
+    this.mobConfig = new MobConfig(this);
     Message.setup();
     Sound.setup();
     Particle.setup();
-    Title.setup();
     configFiles.addAll(List.of(
         mainConfig,
+        mobConfig,
         Message.getConfigWrapper(),
         Sound.getConfigWrapper(),
-        Particle.getConfigWrapper(),
-        Title.getConfigWrapper()));
+        Particle.getConfigWrapper()));
     for (ConfigWrapper configFile : configFiles) {
       configFile.writeDefaults();
     }
@@ -78,9 +86,10 @@ public class GTMobs extends JavaPlugin {
    * Registers all the needed managers in order for the plugin to work.
    */
   private void registerManagers() {
+    this.gtMobManager = new GTMobManager(this);
+    this.activeMobManager = new ActiveMobManager(this);
     dataManagers.addAll(List.of(
-
-    ));
+        gtMobManager));
   }
 
   /**
@@ -117,6 +126,7 @@ public class GTMobs extends JavaPlugin {
   private void registerListeners() {
     PluginManager pluginManager = Bukkit.getPluginManager();
 
+    pluginManager.registerEvents(new GTMobHandler(this), this);
   }
 
   @Override
@@ -146,5 +156,17 @@ public class GTMobs extends JavaPlugin {
 
   public MainConfig getMainConfig() {
     return mainConfig;
+  }
+
+  public MobConfig getMobConfig() {
+    return mobConfig;
+  }
+
+  public GTMobManager getGTMobManager() {
+    return gtMobManager;
+  }
+
+  public ActiveMobManager getActiveMobManager() {
+    return activeMobManager;
   }
 }

@@ -2,11 +2,14 @@ package me.eeshe.gtmobs.models.mobactions;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.models.GTMob;
 import me.eeshe.gtmobs.models.config.IntRange;
 import me.eeshe.gtmobs.util.LocationUtil;
+import me.eeshe.gtmobs.util.LogUtil;
 
 public class SpawnMobAction extends MobAction {
 
@@ -24,12 +27,37 @@ public class SpawnMobAction extends MobAction {
   }
 
   @Override
-  public void execute(LivingEntity gtmobEntity, LivingEntity attacker) {
+  public boolean execute(LivingEntity gtmobEntity, Entity attacker) {
+    if (!super.execute(gtmobEntity, attacker)) {
+      return false;
+    }
+    GTMob gtMob = GTMob.fromId(mobId);
+    if (gtMob == null) {
+      LogUtil.sendWarnLog("Unknown GTMob '" + mobId + "' configured for SpawnMobAction.");
+      return false;
+    }
     Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
-      Location gtmobLocation = gtmobEntity.getLocation();
+      Location gtMobLocation = gtmobEntity.getLocation();
       for (int i = 0; i < amountRange.generateRandom(); i++) {
-        // TODO: Spawn mob
+        gtMob.spawn(LocationUtil.generateRandomLocationRadius(gtMobLocation, radius));
       }
     }, delayTicks.generateRandom());
+    return true;
+  }
+
+  public String getMobId() {
+    return mobId;
+  }
+
+  public IntRange getAmountRange() {
+    return amountRange;
+  }
+
+  public double getRadius() {
+    return radius;
+  }
+
+  public IntRange getDelayTicks() {
+    return delayTicks;
   }
 }

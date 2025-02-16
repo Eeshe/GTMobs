@@ -1,11 +1,11 @@
 package me.eeshe.gtmobs.managers;
 
-import org.bukkit.plugin.Plugin;
+import me.eeshe.gtmobs.GTMobs;
 
 public abstract class DataManager {
-  private final Plugin plugin;
+  private final GTMobs plugin;
 
-  public DataManager(Plugin plugin) {
+  public DataManager(GTMobs plugin) {
     this.plugin = plugin;
   }
 
@@ -41,7 +41,7 @@ public abstract class DataManager {
    */
   public abstract void unload();
 
-  public Plugin getPlugin() {
+  public GTMobs getPlugin() {
     return plugin;
   }
 }

@@ -12,6 +12,8 @@ public class GTMobsCommand extends PluginCommand {
     setName("gtmobs");
     setPermission("gtmobs.base");
     setSubcommands(List.of(
+        new CommandSpawn(plugin, this),
+        new CommandKillAll(plugin, this),
         new CommandReload(plugin, this),
         new CommandHelp(plugin, this)));
   }

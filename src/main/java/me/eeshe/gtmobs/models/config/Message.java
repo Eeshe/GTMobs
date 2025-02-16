@@ -47,7 +47,18 @@ public enum Message {
 
   RELOAD_COMMAND_USAGE("reload-command-usage", "/gtmobs reload"),
 
-  RELOAD_COMMAND_SUCCESS("reload-command-success", "&aConfiguration successfully reloaded."),;
+  RELOAD_COMMAND_SUCCESS("reload-command-success", "&aConfiguration successfully reloaded."),
+
+  SPAWN_COMMAND_INFO("spawn-command-info", "Spawns the specified GTMob."),
+  SPAWN_COMMAND_USAGE("spawn-command-usage", "/gtmobs spawn <Mob> [Amount] [Radius]"),
+  GTMOB_NOT_FOUND("gtmob-not-found", "&cGTMob &l%id%&c not found."),
+  SPAWN_COMMAND_SUCCESS("spawn-command-success", "&aSuccessfully spawned &l%amount% %id%&a."),
+
+  KILL_ALL_COMMAND_INFO("killall-command-info",
+      "Kills all the GTMobs. Can receive a radius parameter to limit the killing area."),
+  KILL_ALL_COMMAND_USAGE("killall-command-usage", "/gtmobs killall [Radius]"),
+  KILL_ALL_COMMAND_SUCCESS("killall-command-success", "&aSuccessfully killed &l%amount%&a GTMobs."),
+  ;
 
   private final static ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "messages.yml");
 
@@ -171,8 +182,8 @@ public enum Message {
     String message = StringUtil.formatColor(getFormattedValue(placeholders));
     if (!actionBar) {
       sender.sendMessage(message);
-    } else if (sender instanceof Player player) {
-      player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(message).create());
+    } else if (sender instanceof Player) {
+      ((Player) sender).spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder(message).create());
     }
     if (libSound == null)
       return;
