@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -55,9 +56,10 @@ public class MobConfig extends ConfigWrapper {
         new GTMob(
             "zombie1",
             EntityType.ZOMBIE,
+            false,
             "&eGTZombie",
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
-            new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F),
+            List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(
                 new ConfigParticle(Particle.SLIME, 10)),
             List.of(
@@ -96,9 +98,10 @@ public class MobConfig extends ConfigWrapper {
         new GTMob(
             "skeleton1",
             EntityType.SKELETON,
+            false,
             "&3GTSkeleton",
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
-            new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F),
+            List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(
                 new ConfigParticle(Particle.SLIME, 10),
                 new ConfigParticle(Particle.FLAME, 10)),
@@ -148,7 +151,7 @@ public class MobConfig extends ConfigWrapper {
     config.addDefault(path + ".entity-type", gtMob.getEntityType().name());
     config.addDefault(path + ".display-name", gtMob.getDisplayName());
     ConfigUtil.writeAttributeMap(config, path + ".attributes", gtMob.getAttributes());
-    config.addDefault(path + ".spawn-sound", gtMob.getSpawnSound().toString());
+    writeConfigSounds(config, path + ".spawn-sounds", gtMob.getSpawnSounds());
     ConfigUtil.writeConfigParticles(config, path + ".hit-particles", gtMob.getOnHitParticles());
     ConfigUtil.writeConfigParticles(config, path + ".death-particles", gtMob.getOnDeathParticles());
     ConfigUtil.writeIntRange(config, path + ".experience-drop", gtMob.getExperienceDrop());
@@ -158,13 +161,26 @@ public class MobConfig extends ConfigWrapper {
   }
 
   /**
+   * Writes the passed ConfigSounds to the passed config file
+   *
+   * @param config       Config file to write
+   * @param path         Path to write in
+   * @param configSounds ConfigSounds to write
+   */
+  private void writeConfigSounds(FileConfiguration config, String path, List<ConfigSound> configSounds) {
+    config.addDefault(path, String.join(",", configSounds.stream().map(ConfigSound::toString)
+        .collect(Collectors.toList())));
+  }
+
+  /**
    * Writes the passed List of MobActionChains to the passed path
    *
    * @param path            Path to write in
    * @param mobActionChains MobActionChains to write
    */
   private void writeDefaultMobActions(String path, List<MobActionChain> mobActionChains) {
-    getConfig().addDefault(path, String.join(",", mobActionChains.stream().map(MobActionChain::toString).toList()));
+    getConfig().addDefault(path, String.join(",", mobActionChains.stream()
+        .map(MobActionChain::toString).collect(Collectors.toList())));
   }
 
   /**
@@ -199,30 +215,59 @@ public class MobConfig extends ConfigWrapper {
       LogUtil.sendWarnLog("Unknown Entity Type '" + entityTypeName + "' configured for mob '" + id + "'.");
       return null;
     }
+    boolean isBaby = mobSection.getBoolean("baby");
     String displayName = mobSection.getString("display-name", "");
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
-    ConfigSound spawnSound = computeConfigSound(mobSection.getString("spawn-sound"));
-    List<ConfigParticle> onHitParticles = ConfigUtil.fetchConfigParticles(config, id + ".hit-particles");
-    List<ConfigParticle> onDeathParticles = ConfigUtil.fetchConfigParticles(config, id + ".death-particles");
+    List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds", ""));
+    List<ConfigParticle> onHitParticles = ConfigUtil.computeConfigParticles(
+        mobSection.getString("hit-particles"));
+    List<ConfigParticle> onDeathParticles = ConfigUtil.computeConfigParticles(
+        mobSection.getString("death-particles"));
     IntRange experienceDrop = ConfigUtil.fetchIntRange(config, id + ".experience-drop");
     List<MobActionChain> onHitActions = computeMobActionChains(mobSection.getString("events.hit", ""));
     List<MobActionChain> onShotActions = computeMobActionChains(mobSection.getString("events.shot", ""));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death", ""));
 
-    return new GTMob(id, entityType, displayName, attributes, spawnSound, onHitParticles, onDeathParticles,
-        experienceDrop, onHitActions, onShotActions, onDeathActions);
+    return new GTMob(id, entityType, isBaby, displayName, attributes, spawnSounds, onHitParticles,
+        onDeathParticles, experienceDrop, onHitActions, onShotActions, onDeathActions);
+  }
+
+  /**
+   * Computes a List of ConfigSounds from the passed String
+   *
+   * @param configSoundChainString String to compute
+   * @return Computed ConfigSounds
+   */
+  private List<ConfigSound> computeConfigSounds(String configSoundChainString) {
+    List<ConfigSound> configSounds = new ArrayList<>();
+    String[] configParticleStrings = configSoundChainString.split(",");
+    if (configParticleStrings.length == 0) {
+      ConfigSound configSound = computeConfigSound(configSoundChainString);
+      if (configSound != null) {
+        configSounds.add(configSound);
+      }
+    }
+    for (String configParticleString : configParticleStrings) {
+      ConfigSound configSound = computeConfigSound(configParticleString);
+      if (configSound == null) {
+        continue;
+      }
+      configSounds.add(configSound);
+    }
+    return configSounds;
+
   }
 
   /**
    * Computes a ConfigSound from the passed String
    *
-   * @param soundString String to compute
+   * @param configSoundString String to compute
    * @return Computed ConfigSound
    */
-  private ConfigSound computeConfigSound(String soundString) {
-    String[] params = soundString.split("-");
+  private ConfigSound computeConfigSound(String configSoundString) {
+    String[] params = configSoundString.split("-");
     if (params.length < 3) {
-      LogUtil.sendWarnLog("Not enough parameters for ConfigSound '" + soundString + "'.");
+      LogUtil.sendWarnLog("Not enough parameters for ConfigSound '" + configSoundString + "'.");
       return null;
     }
     String soundName = params[0];
@@ -230,21 +275,21 @@ public class MobConfig extends ConfigWrapper {
     try {
       sound = Sound.valueOf(soundName);
     } catch (Exception e) {
-      LogUtil.sendWarnLog("Unknown sound '" + soundName + "' configured in '" + soundString + "'.");
+      LogUtil.sendWarnLog("Unknown sound '" + soundName + "' configured in '" + configSoundString + "'.");
       return null;
     }
     float volume;
     try {
       volume = (float) Double.parseDouble(params[1]);
     } catch (Exception e) {
-      LogUtil.sendWarnLog("Invalid volume '" + params[1] + "' configured in '" + soundString + "'.");
+      LogUtil.sendWarnLog("Invalid volume '" + params[1] + "' configured in '" + configSoundString + "'.");
       return null;
     }
     float pitch;
     try {
       pitch = (float) Double.parseDouble(params[2]);
     } catch (Exception e) {
-      LogUtil.sendWarnLog("Invalid pitch '" + params[2] + "' configured in '" + soundString + "'.");
+      LogUtil.sendWarnLog("Invalid pitch '" + params[2] + "' configured in '" + configSoundString + "'.");
       return null;
     }
     return new ConfigSound(sound, volume, pitch);
@@ -338,24 +383,26 @@ public class MobConfig extends ConfigWrapper {
    * @return Computed ConsoleCommandMobAction
    */
   private ConsoleCommandMobAction computeConsoleCommandMobAction(String[] params) {
-    if (params.length < 2) {
+    if (params.length < 1) {
       LogUtil.sendWarnLog("Not enough parameters provided for ConsoleCommandMobAction. Got: " +
           Arrays.toString(params));
       return null;
     }
-    List<String> commands = Arrays.asList(params[0].split(";"));
+    List<String> commands = Arrays.asList(params[0].replace("[", "").replace("]", "").trim().split(";"));
     if (commands.isEmpty()) {
       LogUtil.sendWarnLog("Couldn't find commands for ConsoleCommandMobAction from parameters: " +
           Arrays.toString(params));
       return null;
     }
-    long delayTicks;
-    try {
-      delayTicks = Long.valueOf(params[1]);
-    } catch (Exception e) {
-      LogUtil.sendWarnLog("Invalid delay ticks '" + params[1] + "' from parameters: " +
-          Arrays.toString(params));
-      return null;
+    long delayTicks = 0;
+    if (params.length > 1) {
+      try {
+        delayTicks = Long.valueOf(params[1]);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Invalid delay ticks '" + params[1] + "' from parameters: " +
+            Arrays.toString(params) + ". Using 0.");
+        delayTicks = 0;
+      }
     }
     return new ConsoleCommandMobAction(commands, delayTicks);
   }
@@ -415,7 +462,7 @@ public class MobConfig extends ConfigWrapper {
    * @return Computed SpawnMobAction
    */
   private SpawnMobAction computeSpawnMobAction(String[] params) {
-    if (params.length < 4) {
+    if (params.length < 3) {
       LogUtil.sendWarnLog("Not enough parameters provided for SpawnMobAction. Got: " +
           Arrays.toString(params));
       return null;
@@ -437,13 +484,14 @@ public class MobConfig extends ConfigWrapper {
           Arrays.toString(params));
       return null;
     }
-    long delayTicks;
-    try {
-      delayTicks = Long.parseLong(params[3]);
-    } catch (Exception e) {
-      LogUtil.sendWarnLog("Invalid amount '" + params[3] + "' from parameters: " +
-          Arrays.toString(params));
-      return null;
+    long delayTicks = 0;
+    if (params.length > 3) {
+      try {
+        delayTicks = Long.parseLong(params[3]);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Invalid delay ticks '" + params[3] + "' from parameters: " +
+            Arrays.toString(params) + ". Using 0.");
+      }
     }
     return new SpawnMobAction(mobId, amount, radius, delayTicks);
   }

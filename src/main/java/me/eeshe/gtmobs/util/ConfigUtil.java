@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -50,7 +51,8 @@ public class ConfigUtil {
       config.set(path + ".lore", lore);
     }
     if (!meta.getItemFlags().isEmpty()) {
-      config.set(path + ".item-flags", meta.getItemFlags().stream().map(ItemFlag::name).toList());
+      config.set(path + ".item-flags", meta.getItemFlags().stream().map(ItemFlag::name)
+          .collect(Collectors.toList()));
     }
   }
 
@@ -180,7 +182,8 @@ public class ConfigUtil {
     if (configParticles == null) {
       return;
     }
-    config.set(path, configParticles.stream().map(ConfigParticle::toString).toList());
+    config.set(path, String.join(",", configParticles.stream()
+        .map(ConfigParticle::toString).collect(Collectors.toList())));
   }
 
   /**
@@ -242,6 +245,60 @@ public class ConfigUtil {
       return null;
     }
     int amount = particleSection.getInt("amount");
+    return new ConfigParticle(particle, amount);
+  }
+
+  /**
+   * Computes a List of ConfigParticles from the passed string
+   *
+   * @param configParticleChainString String to compute
+   * @return Computed ConfigParticles
+   */
+  public static List<ConfigParticle> computeConfigParticles(String configParticleChainString) {
+    List<ConfigParticle> configParticles = new ArrayList<>();
+    String[] configParticleStrings = configParticleChainString.split(",");
+    if (configParticleStrings.length == 0) {
+      ConfigParticle configParticle = computeConfigParticle(configParticleChainString);
+      if (configParticle != null) {
+        configParticles.add(configParticle);
+      }
+    }
+    for (String configParticleString : configParticleStrings) {
+      ConfigParticle configParticle = computeConfigParticle(configParticleString);
+      if (configParticle == null) {
+        continue;
+      }
+      configParticles.add(configParticle);
+    }
+    return configParticles;
+  }
+
+  /**
+   * Computes a ConfigParticle from the passed string
+   *
+   * @param configParticleString String to compute
+   * @return Computed ConfigParticle
+   */
+  public static ConfigParticle computeConfigParticle(String configParticleString) {
+    String[] params = configParticleString.split("-");
+    if (params.length < 2) {
+      LogUtil.sendWarnLog("Invalid ConfigParticle string '" + configParticleString + "'.");
+      return null;
+    }
+    Particle particle;
+    try {
+      particle = Particle.valueOf(params[0]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Unknown particle '" + params[0] + "' configured in '" + configParticleString + "'.");
+      return null;
+    }
+    int amount;
+    try {
+      amount = Integer.parseInt(params[1]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid amount '" + params[1] + "' configured in '" + configParticleString + "'.");
+      return null;
+    }
     return new ConfigParticle(particle, amount);
   }
 

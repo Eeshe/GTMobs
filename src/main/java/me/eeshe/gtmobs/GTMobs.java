@@ -1,9 +1,19 @@
 package me.eeshe.gtmobs;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import me.eeshe.gtmobs.commands.CommandCompleter;
 import me.eeshe.gtmobs.commands.CommandRunner;
-import me.eeshe.gtmobs.commands.PluginCommand;
 import me.eeshe.gtmobs.commands.GTMobsCommand;
+import me.eeshe.gtmobs.commands.PluginCommand;
 import me.eeshe.gtmobs.files.config.ConfigWrapper;
 import me.eeshe.gtmobs.files.config.MainConfig;
 import me.eeshe.gtmobs.files.config.MobConfig;
@@ -11,16 +21,9 @@ import me.eeshe.gtmobs.listeners.GTMobHandler;
 import me.eeshe.gtmobs.managers.ActiveMobManager;
 import me.eeshe.gtmobs.managers.DataManager;
 import me.eeshe.gtmobs.managers.GTMobManager;
-import me.eeshe.gtmobs.models.config.*;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import me.eeshe.gtmobs.models.config.Message;
+import me.eeshe.gtmobs.models.config.Particle;
+import me.eeshe.gtmobs.models.config.Sound;
 
 public class GTMobs extends JavaPlugin {
 
@@ -89,7 +92,8 @@ public class GTMobs extends JavaPlugin {
     this.gtMobManager = new GTMobManager(this);
     this.activeMobManager = new ActiveMobManager(this);
     dataManagers.addAll(List.of(
-        gtMobManager));
+        gtMobManager,
+        activeMobManager));
   }
 
   /**

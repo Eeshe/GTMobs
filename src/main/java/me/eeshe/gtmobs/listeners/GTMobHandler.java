@@ -1,5 +1,8 @@
 package me.eeshe.gtmobs.listeners;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -57,7 +60,8 @@ public class GTMobHandler implements Listener {
     ActiveMob activeMob = event.getActiveMob();
     GTMob gtMob = activeMob.getGTMob();
 
-    for (MobActionChain mobActionChain : gtMob.getOnHitActions()) {
+    for (MobActionChain mobActionChain : Stream.concat(gtMob.getOnHitActions().stream(),
+        gtMob.getOnShotActions().stream()).collect(Collectors.toList())) {
       mobActionChain.attemptExecution(activeMob.getLivingEntity(), event.getDamager());
     }
     Location location = activeMob.getLivingEntity().getLocation();
@@ -78,6 +82,7 @@ public class GTMobHandler implements Listener {
     if (activeMob == null) {
       return;
     }
+    event.setDroppedExp(activeMob.getGTMob().getExperienceDrop().generateRandom());
     Bukkit.getPluginManager().callEvent(new GTMobDeathEvent(activeMob, entity.getKiller()));
   }
 

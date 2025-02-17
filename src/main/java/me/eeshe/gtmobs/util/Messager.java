@@ -1,18 +1,20 @@
 package me.eeshe.gtmobs.util;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
 import me.eeshe.gtmobs.commands.PluginCommand;
 import me.eeshe.gtmobs.models.config.Message;
 import me.eeshe.gtmobs.models.config.Sound;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This utility class eases the sending of messages to players while adding SFX
@@ -43,7 +45,7 @@ public class Messager {
     List<? extends PluginCommand> commands = commandPool.stream()
         .filter(command -> command.checkPermission(messageReceiver)
             && command.getInfoMessage() != null && command.getUsageMessage() != null)
-        .toList();
+        .collect(Collectors.toList());
     if (commands.isEmpty()) {
       Message.NO_AVAILABLE_COMMANDS.sendError(messageReceiver);
       return;

@@ -13,7 +13,7 @@ public enum MobActionTarget {
    */
   public static MobActionTarget fromName(String name) {
     try {
-      return MobActionTarget.valueOf(name);
+      return MobActionTarget.valueOf(name.toUpperCase().trim());
     } catch (Exception e) {
       return null;
     }

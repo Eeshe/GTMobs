@@ -1,6 +1,7 @@
 package me.eeshe.gtmobs.models.mobactions;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -40,7 +41,8 @@ public class MobActionChain {
   }
 
   public String toString() {
-    return String.join(",", mobActions.stream().map(MobAction::toString).toList()) + "-(" + chance + ")";
+    return String.join(",", mobActions.stream().map(MobAction::toString)
+        .collect(Collectors.toList())) + "-(" + chance + ")";
   }
 
   public List<MobAction> getMobActions() {

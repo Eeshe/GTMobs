@@ -8,7 +8,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import me.eeshe.gtmobs.GTMobs;
-import me.eeshe.gtmobs.models.config.IntRange;
 import me.eeshe.gtmobs.util.CommandUtil;
 
 public class ConsoleCommandMobAction extends MobAction {

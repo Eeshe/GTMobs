@@ -6,7 +6,7 @@
 
     <groupId>me.eeshe</groupId>
     <artifactId>GTMobs</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -14,6 +14,34 @@
     </properties>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.3.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputFile>${basedir}/output/${project.artifactId}-${project.version}.jar</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -52,6 +80,22 @@
             <artifactId>placeholderapi</artifactId>
             <version>LATEST</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.shampaggon</groupId>
+            <artifactId>Crackshot</artifactId>
+            <version>0.98.11</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/dependencies/CrackShot.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>me.DeeCaaD</groupId>
+            <artifactId>CrackshotPlus</artifactId>
+            <version>1.95</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/dependencies/CrackShotPlus.jar</systemPath>
         </dependency>
     </dependencies>
 </project>

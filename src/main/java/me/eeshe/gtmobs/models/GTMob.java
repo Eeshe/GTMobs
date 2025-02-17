@@ -7,15 +7,15 @@ import java.util.Map.Entry;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Zombie;
 
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
-import me.eeshe.gtmobs.models.mobactions.MobAction;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 import me.eeshe.gtmobs.util.StringUtil;
 
@@ -23,9 +23,10 @@ public class GTMob {
 
   private final String id;
   private final EntityType entityType;
+  private final boolean isBaby;
   private final String displayName;
   private final Map<Attribute, Double> attributes;
-  private final ConfigSound spawnSound;
+  private final List<ConfigSound> spawnSounds;
   private final List<ConfigParticle> onHitParticles;
   private final List<ConfigParticle> onDeathParticles;
   private final IntRange experienceDrop;
@@ -33,15 +34,17 @@ public class GTMob {
   private final List<MobActionChain> onShotActions;
   private final List<MobActionChain> onDeathActions;
 
-  public GTMob(String id, EntityType entityType, String displayName, Map<Attribute, Double> attributes,
-      ConfigSound spawnSound, List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
+  public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
+      Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
+      List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
       IntRange experienceDrop, List<MobActionChain> onHitActions,
       List<MobActionChain> onShotActions, List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
+    this.isBaby = isBaby;
     this.displayName = displayName;
     this.attributes = attributes;
-    this.spawnSound = spawnSound;
+    this.spawnSounds = spawnSounds;
     this.onHitParticles = onHitParticles;
     this.onDeathParticles = onDeathParticles;
     this.experienceDrop = experienceDrop;
@@ -88,6 +91,17 @@ public class GTMob {
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
 
+    // Attempt to set baby setting
+    if (livingEntity instanceof Zombie) {
+      ((Zombie) livingEntity).setBaby(isBaby);
+    } else if (livingEntity instanceof Ageable) {
+      if (isBaby()) {
+        ((Ageable) livingEntity).setBaby();
+      } else {
+        ((Ageable) livingEntity).setAdult();
+      }
+    }
+
     // Apply attributes
     for (Entry<Attribute, Double> entry : attributes.entrySet()) {
       AttributeInstance attributeInstance = livingEntity.getAttribute(entry.getKey());
@@ -95,9 +109,10 @@ public class GTMob {
         continue;
       }
       attributeInstance.setBaseValue(entry.getValue());
+      livingEntity.setHealth(entry.getValue());
     }
     // Play spawn sound
-    if (spawnSound != null) {
+    for (ConfigSound spawnSound : spawnSounds) {
       spawnSound.play(location);
     }
     new ActiveMob(livingEntity, id).register();
@@ -112,6 +127,10 @@ public class GTMob {
     return entityType;
   }
 
+  public boolean isBaby() {
+    return isBaby;
+  }
+
   public String getDisplayName() {
     return displayName;
   }
@@ -120,8 +139,8 @@ public class GTMob {
     return attributes;
   }
 
-  public ConfigSound getSpawnSound() {
-    return spawnSound;
+  public List<ConfigSound> getSpawnSounds() {
+    return spawnSounds;
   }
 
   public List<ConfigParticle> getOnHitParticles() {
