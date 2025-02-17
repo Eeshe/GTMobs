@@ -419,10 +419,8 @@ public class MobConfig extends ConfigWrapper {
           Arrays.toString(params));
       return null;
     }
-    PotionEffectType potionEffectType;
-    try {
-      potionEffectType = PotionEffectType.getByName(params[0]);
-    } catch (Exception e) {
+    PotionEffectType potionEffectType = PotionEffectType.getByName(params[0]);
+    if (potionEffectType == null) {
       LogUtil.sendWarnLog("Unknown Potion Effect Type '" + params[0] + "' from parameters: " +
           Arrays.toString(params));
       return null;
