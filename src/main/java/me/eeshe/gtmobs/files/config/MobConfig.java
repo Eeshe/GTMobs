@@ -255,7 +255,6 @@ public class MobConfig extends ConfigWrapper {
       configSounds.add(configSound);
     }
     return configSounds;
-
   }
 
   /**
@@ -292,7 +291,16 @@ public class MobConfig extends ConfigWrapper {
       LogUtil.sendWarnLog("Invalid pitch '" + params[2] + "' configured in '" + configSoundString + "'.");
       return null;
     }
-    return new ConfigSound(sound, volume, pitch);
+    long delayTicks = 0;
+    if (params.length > 3) {
+      try {
+        delayTicks = Long.parseLong(params[3]);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Invalid delay ticks '" + params[3] + "' configured " +
+            "in '" + configSoundString + "'. Using 0.");
+      }
+    }
+    return new ConfigSound(sound, volume, pitch, delayTicks);
   }
 
   /**
