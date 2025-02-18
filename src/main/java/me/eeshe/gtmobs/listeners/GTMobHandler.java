@@ -60,13 +60,31 @@ public class GTMobHandler implements Listener {
     ActiveMob activeMob = event.getActiveMob();
     GTMob gtMob = activeMob.getGTMob();
 
+    Entity damager = event.getDamager();
     for (MobActionChain mobActionChain : Stream.concat(gtMob.getOnHitActions().stream(),
-        gtMob.getOnShotActions().stream()).collect(Collectors.toList())) {
-      mobActionChain.attemptExecution(activeMob.getLivingEntity(), event.getDamager());
+        gtMob.getOnTargetHitActions().stream()).collect(Collectors.toList())) {
+      mobActionChain.attemptExecution(activeMob.getLivingEntity(), damager);
     }
     Location location = activeMob.getLivingEntity().getLocation();
     for (ConfigParticle configParticle : gtMob.getOnHitParticles()) {
       configParticle.spawn(location);
+    }
+  }
+
+  /**
+   * Listens when a GTMob damages an entity and executes the onHitTarget
+   * actions.
+   *
+   * @param event GTMobDamageEntityEvent
+   */
+  @EventHandler
+  public void onGTMobDamageEntity(GTMobDamageEntityEvent event) {
+    ActiveMob activeMob = event.getActiveMob();
+    GTMob gtMob = activeMob.getGTMob();
+    Entity damaged = event.getDamaged();
+
+    for (MobActionChain mobActionChain : gtMob.getOnTargetHitActions()) {
+      mobActionChain.attemptExecution(activeMob.getLivingEntity(), damaged);
     }
   }
 

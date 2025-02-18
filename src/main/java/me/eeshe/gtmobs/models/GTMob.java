@@ -31,14 +31,14 @@ public class GTMob {
   private final List<ConfigParticle> onDeathParticles;
   private final IntRange experienceDrop;
   private final List<MobActionChain> onHitActions;
-  private final List<MobActionChain> onShotActions;
+  private final List<MobActionChain> onTargetHitActions;
   private final List<MobActionChain> onDeathActions;
 
   public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
       Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
       List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
       IntRange experienceDrop, List<MobActionChain> onHitActions,
-      List<MobActionChain> onShotActions, List<MobActionChain> onDeathActions) {
+      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
@@ -49,7 +49,7 @@ public class GTMob {
     this.onDeathParticles = onDeathParticles;
     this.experienceDrop = experienceDrop;
     this.onHitActions = onHitActions;
-    this.onShotActions = onShotActions;
+    this.onTargetHitActions = onTargetHitActions;
     this.onDeathActions = onDeathActions;
   }
 
@@ -159,8 +159,8 @@ public class GTMob {
     return onHitActions;
   }
 
-  public List<MobActionChain> getOnShotActions() {
-    return onShotActions;
+  public List<MobActionChain> getOnTargetHitActions() {
+    return onTargetHitActions;
   }
 
   public List<MobActionChain> getOnDeathActions() {

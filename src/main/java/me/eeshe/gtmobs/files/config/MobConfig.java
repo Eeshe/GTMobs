@@ -156,7 +156,7 @@ public class MobConfig extends ConfigWrapper {
     ConfigUtil.writeConfigParticles(config, path + ".death-particles", gtMob.getOnDeathParticles());
     ConfigUtil.writeIntRange(config, path + ".experience-drop", gtMob.getExperienceDrop());
     writeDefaultMobActions(path + ".events.hit", gtMob.getOnHitActions());
-    writeDefaultMobActions(path + ".events.shot", gtMob.getOnShotActions());
+    writeDefaultMobActions(path + ".events.target-hit", gtMob.getOnTargetHitActions());
     writeDefaultMobActions(path + ".events.death", gtMob.getOnDeathActions());
   }
 
@@ -225,11 +225,11 @@ public class MobConfig extends ConfigWrapper {
         mobSection.getString("death-particles"));
     IntRange experienceDrop = ConfigUtil.fetchIntRange(config, id + ".experience-drop");
     List<MobActionChain> onHitActions = computeMobActionChains(mobSection.getString("events.hit", ""));
-    List<MobActionChain> onShotActions = computeMobActionChains(mobSection.getString("events.shot", ""));
+    List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit", ""));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death", ""));
 
     return new GTMob(id, entityType, isBaby, displayName, attributes, spawnSounds, onHitParticles,
-        onDeathParticles, experienceDrop, onHitActions, onShotActions, onDeathActions);
+        onDeathParticles, experienceDrop, onHitActions, onTargetHitActions, onDeathActions);
   }
 
   /**
