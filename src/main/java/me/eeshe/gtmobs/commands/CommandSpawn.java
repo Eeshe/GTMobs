@@ -1,5 +1,6 @@
 package me.eeshe.gtmobs.commands;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.bukkit.Location;
@@ -23,6 +24,9 @@ public class CommandSpawn extends PluginCommand {
     setUsageMessage(Message.SPAWN_COMMAND_USAGE);
     setArgumentAmount(1);
     setPlayerCommand(true);
+    setCompletions(Map.of(0, (sender, args) -> {
+      return new ArrayList<>(plugin.getGTMobManager().getGTMobs().keySet());
+    }));
   }
 
   @Override
