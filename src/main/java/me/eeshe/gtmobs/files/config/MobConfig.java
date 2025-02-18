@@ -61,10 +61,10 @@ public class MobConfig extends ConfigWrapper {
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(
-                new ConfigParticle(Particle.SLIME, 10)),
+                new ConfigParticle(Particle.SLIME, 10, 1, 1, 1, 0.5)),
             List.of(
-                new ConfigParticle(Particle.SMOKE_NORMAL, 10),
-                new ConfigParticle(Particle.EXPLOSION_NORMAL, 1)),
+                new ConfigParticle(Particle.SMOKE_NORMAL, 10, 1, 1, 1, 0.5),
+                new ConfigParticle(Particle.EXPLOSION_NORMAL, 1, 1, 1, 1, 0.5)),
             new IntRange(1, 5),
             List.of(
                 new MobActionChain(List.of(
@@ -103,11 +103,11 @@ public class MobConfig extends ConfigWrapper {
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(
-                new ConfigParticle(Particle.SLIME, 10),
-                new ConfigParticle(Particle.FLAME, 10)),
+                new ConfigParticle(Particle.SLIME, 10, 1, 1, 1, 0.5),
+                new ConfigParticle(Particle.FLAME, 10, 1, 1, 1, 0.5)),
             List.of(
-                new ConfigParticle(Particle.SMOKE_NORMAL, 10),
-                new ConfigParticle(Particle.EXPLOSION_HUGE, 10)),
+                new ConfigParticle(Particle.SMOKE_NORMAL, 10, 1, 1, 1, 0.5),
+                new ConfigParticle(Particle.EXPLOSION_HUGE, 10, 1, 1, 1, 0.5)),
             new IntRange(10, 50),
             List.of(new MobActionChain(List.of(
                 new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(

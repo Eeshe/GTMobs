@@ -65,7 +65,7 @@ public class GTMobHandler implements Listener {
         gtMob.getOnTargetHitActions().stream()).collect(Collectors.toList())) {
       mobActionChain.attemptExecution(activeMob.getLivingEntity(), damager);
     }
-    Location location = activeMob.getLivingEntity().getLocation();
+    Location location = activeMob.getLivingEntity().getLocation().add(0, 1, 0);
     for (ConfigParticle configParticle : gtMob.getOnHitParticles()) {
       configParticle.spawn(location);
     }
@@ -115,14 +115,14 @@ public class GTMobHandler implements Listener {
     activeMob.unregister();
 
     LivingEntity livingEntity = activeMob.getLivingEntity();
-    Location location = livingEntity.getLocation();
+    Location particleLocation = livingEntity.getLocation().add(0, 1, 0);
     GTMob gtMob = activeMob.getGTMob();
 
     for (MobActionChain mobActionChain : gtMob.getOnDeathActions()) {
       mobActionChain.attemptExecution(livingEntity, event.getKiller());
     }
     for (ConfigParticle configParticle : gtMob.getOnDeathParticles()) {
-      configParticle.spawn(location);
+      configParticle.spawn(particleLocation);
     }
   }
 }

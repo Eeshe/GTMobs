@@ -245,7 +245,12 @@ public class ConfigUtil {
       return null;
     }
     int amount = particleSection.getInt("amount");
-    return new ConfigParticle(particle, amount);
+    double xOffSet = particleSection.getDouble("x-off-set");
+    double yOffSet = particleSection.getDouble("y-off-set");
+    double zOffSet = particleSection.getDouble("z-off-set");
+    double speed = particleSection.getDouble("speed");
+    return new ConfigParticle(particle, amount, xOffSet, yOffSet, zOffSet,
+        speed);
   }
 
   /**
@@ -281,7 +286,7 @@ public class ConfigUtil {
    */
   public static ConfigParticle computeConfigParticle(String configParticleString) {
     String[] params = configParticleString.split("-");
-    if (params.length < 2) {
+    if (params.length != 2 && params.length != 6) {
       LogUtil.sendWarnLog("Invalid ConfigParticle string '" + configParticleString + "'.");
       return null;
     }
@@ -299,7 +304,38 @@ public class ConfigUtil {
       LogUtil.sendWarnLog("Invalid amount '" + params[1] + "' configured in '" + configParticleString + "'.");
       return null;
     }
-    return new ConfigParticle(particle, amount);
+    if (params.length == 2) {
+      return new ConfigParticle(particle, amount);
+    }
+    double xOffSet;
+    try {
+      xOffSet = Double.parseDouble(params[2]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid X Off Set '" + params[2] + "' configured in '" + configParticleString + "'.");
+      return null;
+    }
+    double yOffSet;
+    try {
+      yOffSet = Double.parseDouble(params[3]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid Y Off Set '" + params[3] + "' configured in '" + configParticleString + "'.");
+      return null;
+    }
+    double zOffSet;
+    try {
+      zOffSet = Double.parseDouble(params[4]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid X Off Set '" + params[4] + "' configured in '" + configParticleString + "'.");
+      return null;
+    }
+    double speed;
+    try {
+      speed = Double.parseDouble(params[5]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid X Off Set '" + params[5] + "' configured in '" + configParticleString + "'.");
+      return null;
+    }
+    return new ConfigParticle(particle, amount, xOffSet, yOffSet, zOffSet, speed);
   }
 
   /**

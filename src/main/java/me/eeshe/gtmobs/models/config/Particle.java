@@ -15,11 +15,20 @@ public enum Particle {
   private final String path;
   private final org.bukkit.Particle defaultParticle;
   private final int defaultAmount;
+  private final double defaultXOffSet;
+  private final double defaultYOffSet;
+  private final double defaultZOffSet;
+  private final double defaultSpeed;
 
-  Particle(String path, org.bukkit.Particle defaultParticle, int defaultAmount) {
+  private Particle(String path, org.bukkit.Particle defaultParticle, int defaultAmount, double defaultXOffSet,
+      double defaultYOffSet, double defaultZOffSet, double defaultSpeed) {
     this.path = path;
     this.defaultParticle = defaultParticle;
     this.defaultAmount = defaultAmount;
+    this.defaultXOffSet = defaultXOffSet;
+    this.defaultYOffSet = defaultYOffSet;
+    this.defaultZOffSet = defaultZOffSet;
+    this.defaultSpeed = defaultSpeed;
   }
 
   /**
@@ -61,7 +70,8 @@ public enum Particle {
   }
 
   private ConfigParticle createDefaultConfigParticle() {
-    return new ConfigParticle(defaultParticle, defaultAmount);
+    return new ConfigParticle(defaultParticle, defaultAmount, defaultXOffSet,
+        defaultZOffSet, defaultZOffSet, defaultSpeed);
   }
 
   public String getPath() {
@@ -75,4 +85,21 @@ public enum Particle {
   public int getDefaultAmount() {
     return defaultAmount;
   }
+
+  public double getDefaultXOffSet() {
+    return defaultXOffSet;
+  }
+
+  public double getDefaultYOffSet() {
+    return defaultYOffSet;
+  }
+
+  public double getDefaultZOffSet() {
+    return defaultZOffSet;
+  }
+
+  public double getDefaultSpeed() {
+    return defaultSpeed;
+  }
+
 }

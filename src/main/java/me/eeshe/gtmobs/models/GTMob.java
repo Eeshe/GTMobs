@@ -109,7 +109,9 @@ public class GTMob {
         continue;
       }
       attributeInstance.setBaseValue(entry.getValue());
-      livingEntity.setHealth(entry.getValue());
+      if (entry.getKey() == Attribute.GENERIC_MAX_HEALTH) {
+        livingEntity.setHealth(entry.getValue());
+      }
     }
     // Play spawn sound
     for (ConfigSound spawnSound : spawnSounds) {

@@ -8,10 +8,27 @@ import org.bukkit.entity.Player;
 public class ConfigParticle {
   private final Particle particle;
   private final int amount;
+  private final double xOffSet;
+  private final double yOffSet;
+  private final double zOffSet;
+  private final double speed;
 
   public ConfigParticle(Particle particle, int amount) {
     this.particle = particle;
     this.amount = amount;
+    this.xOffSet = 0;
+    this.yOffSet = 0;
+    this.zOffSet = 0;
+    this.speed = 0;
+  }
+
+  public ConfigParticle(Particle particle, int amount, double xOffSet, double yOffSet, double zOffSet, double speed) {
+    this.particle = particle;
+    this.amount = amount;
+    this.xOffSet = xOffSet;
+    this.yOffSet = yOffSet;
+    this.zOffSet = zOffSet;
+    this.speed = speed;
   }
 
   /**
@@ -24,7 +41,7 @@ public class ConfigParticle {
     if (world == null)
       return;
 
-    location.getWorld().spawnParticle(particle, location, amount);
+    location.getWorld().spawnParticle(particle, location, amount, xOffSet, yOffSet, zOffSet, speed);
   }
 
   /**
@@ -38,7 +55,7 @@ public class ConfigParticle {
     if (world == null)
       return;
 
-    player.spawnParticle(particle, location, amount);
+    player.spawnParticle(particle, location, amount, xOffSet, yOffSet, zOffSet, speed);
   }
 
   public String toString() {
@@ -51,5 +68,21 @@ public class ConfigParticle {
 
   public int getAmount() {
     return amount;
+  }
+
+  public double getxOffSet() {
+    return xOffSet;
+  }
+
+  public double getyOffSet() {
+    return yOffSet;
+  }
+
+  public double getzOffSet() {
+    return zOffSet;
+  }
+
+  public double getSpeed() {
+    return speed;
   }
 }
