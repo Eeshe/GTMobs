@@ -39,8 +39,7 @@ public class ActiveMobManager extends DataManager {
     int killedAmount = 0;
     if (radius == 0) {
       for (ActiveMob activeMob : new ArrayList<>(getPlugin().getActiveMobManager().getActiveMobs().values())) {
-        activeMob.getLivingEntity().remove();
-        activeMob.unregister();
+        activeMob.despawn();
         killedAmount += 1;
       }
     } else if (center != null) {
@@ -49,8 +48,7 @@ public class ActiveMobManager extends DataManager {
         if (gtMob == null) {
           continue;
         }
-        nearbyEntity.remove();
-        gtMob.unregister();
+        gtMob.despawn();
         killedAmount += 1;
       }
     }

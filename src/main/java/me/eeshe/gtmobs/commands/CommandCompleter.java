@@ -1,13 +1,15 @@
 package me.eeshe.gtmobs.commands;
 
-import me.eeshe.gtmobs.GTMobs;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.util.CompletionUtil;
 
 /**
  * This class handles the tab completion system, adding commands to the tab
@@ -27,11 +29,21 @@ public class CommandCompleter implements TabCompleter {
       return new ArrayList<>();
     if (!command.checkPermission(sender))
       return new ArrayList<>();
-
-    if (!command.getSubcommands().isEmpty() && args.length > 1) {
-      command = command.getSubcommand(args[0]);
+    if (command.getName().equals("gtmobs") && args.length > 3 && args[3].equalsIgnoreCase("mob")) {
+      return getCompletion(CompletionUtil.getGTMobIDs(), args);
+    }
+    while (!command.getSubcommands().isEmpty() && args.length > 1) {
+      PluginCommand subcommand = command.getSubcommand(args[0]);
+      if (subcommand == null) {
+        break;
+      }
+      command = subcommand;
       args = Arrays.copyOfRange(args, 1, args.length);
     }
+    // if (!command.getSubcommands().isEmpty() && args.length > 1) {
+    // command = command.getSubcommand(args[0]);
+    // args = Arrays.copyOfRange(args, 1, args.length);
+    // }
     if (command == null)
       return new ArrayList<>();
     List<String> completions = command.getCommandCompletions(sender, args);

@@ -1,14 +1,20 @@
 package me.eeshe.gtmobs.commands;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.config.Message;
 import me.eeshe.gtmobs.util.CommandUtil;
 import me.eeshe.gtmobs.util.Messager;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import java.util.*;
-import java.util.function.BiFunction;
 
 public class PluginCommand {
   private final Map<String, PluginCommand> subcommands;
@@ -40,6 +46,7 @@ public class PluginCommand {
   }
 
   public void execute(CommandSender sender, String[] args) {
+    // LogUtil.sendWarnLog("ARGS: " + Arrays.toString(args));
     if (args.length < 1) {
       Messager.sendHelpMessage(sender, subcommands.values());
       return;
@@ -51,7 +58,12 @@ public class PluginCommand {
       parentCommandAmount += 1;
       parentPluginCommand = parentPluginCommand.getParentCommand();
     }
-    String subcommandName = args[Math.min(args.length - 1, parentCommandAmount)].toLowerCase();
+    // LogUtil.sendWarnLog("LENGTH: " + args.length);
+    // LogUtil.sendWarnLog("PARENT COMMAND AMOUNT: " + parentCommandAmount);
+    // LogUtil.sendWarnLog("INDEX: " + Math.min(args.length - parentCommandAmount,
+    // parentCommandAmount));
+    String subcommandName = args[0].toLowerCase();
+    // LogUtil.sendWarnLog("Subcommand Name: " + subcommandName);
     PluginCommand subcommand = subcommands.get(subcommandName);
     if (subcommand == null) {
       Messager.sendHelpMessage(sender, subcommands.values());
@@ -72,12 +84,14 @@ public class PluginCommand {
     if (!subcommand.checkPermission(sender, true))
       return;
 
-    subcommand.execute(sender, Arrays.copyOfRange(args, parentCommandAmount + 1, args.length));
+    subcommand.execute(sender, Arrays.copyOfRange(args, 1, args.length));
   }
 
   public List<String> getCommandCompletions(CommandSender sender, String[] args) {
     if (!checkPermission(sender))
       return new ArrayList<>();
+
+    // LogUtil.sendWarnLog("SUBCOMMANDS: " + getSubcommands());
     if (completions.isEmpty()) {
       List<String> completions = new ArrayList<>();
       for (PluginCommand pluginCommand : getSubcommands().values()) {

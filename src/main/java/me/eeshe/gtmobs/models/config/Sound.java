@@ -1,12 +1,13 @@
 package me.eeshe.gtmobs.models.config;
 
-import me.eeshe.gtmobs.GTMobs;
-import me.eeshe.gtmobs.files.config.ConfigWrapper;
-import me.eeshe.gtmobs.util.ConfigUtil;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+
+import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.files.config.ConfigWrapper;
+import me.eeshe.gtmobs.util.ConfigUtil;
 
 public enum Sound {
   SUCCESS("success", true, org.bukkit.Sound.BLOCK_NOTE_PLING, 0.6F, 1.6F),
@@ -14,7 +15,8 @@ public enum Sound {
   BACK("back", true, org.bukkit.Sound.UI_BUTTON_CLICK, 0.6F, 1.1F),
   PREVIOUS_PAGE("previous-page", true, org.bukkit.Sound.UI_BUTTON_CLICK, 0.6F, 1.1F),
   NEXT_PAGE("next-page", true, org.bukkit.Sound.UI_BUTTON_CLICK, 0.6F, 1.1F),
-  INPUT_REQUEST("input-request", true, org.bukkit.Sound.BLOCK_NOTE_XYLOPHONE, 0.6F, 1.2F);
+  INPUT_REQUEST("input-request", true, org.bukkit.Sound.BLOCK_NOTE_XYLOPHONE, 0.6F, 1.2F),
+  TELEPORT("teleport", true, org.bukkit.Sound.ENTITY_ENDERMEN_TELEPORT, 0.6F, 1.2F);
 
   private static final ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "sounds.yml");
   private final String path;

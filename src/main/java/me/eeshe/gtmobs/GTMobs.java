@@ -21,6 +21,7 @@ import me.eeshe.gtmobs.listeners.GTMobHandler;
 import me.eeshe.gtmobs.managers.ActiveMobManager;
 import me.eeshe.gtmobs.managers.DataManager;
 import me.eeshe.gtmobs.managers.GTMobManager;
+import me.eeshe.gtmobs.managers.SpawnerManager;
 import me.eeshe.gtmobs.models.config.Message;
 import me.eeshe.gtmobs.models.config.Particle;
 import me.eeshe.gtmobs.models.config.Sound;
@@ -41,6 +42,7 @@ public class GTMobs extends JavaPlugin {
 
   private GTMobManager gtMobManager;
   private ActiveMobManager activeMobManager;
+  private SpawnerManager spawnerManager;
 
   private CommandExecutor commandExecutor;
   private CommandCompleter commandCompleter;
@@ -91,9 +93,11 @@ public class GTMobs extends JavaPlugin {
   private void registerManagers() {
     this.gtMobManager = new GTMobManager(this);
     this.activeMobManager = new ActiveMobManager(this);
+    this.spawnerManager = new SpawnerManager(this);
     dataManagers.addAll(List.of(
         gtMobManager,
-        activeMobManager));
+        activeMobManager,
+        spawnerManager));
   }
 
   /**
@@ -172,5 +176,9 @@ public class GTMobs extends JavaPlugin {
 
   public ActiveMobManager getActiveMobManager() {
     return activeMobManager;
+  }
+
+  public SpawnerManager getSpawnerManager() {
+    return spawnerManager;
   }
 }

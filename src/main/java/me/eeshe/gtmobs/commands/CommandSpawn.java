@@ -45,7 +45,7 @@ public class CommandSpawn extends PluginCommand {
         return;
       }
       if (amount < 1) {
-        Message.INVALID_NUMERIC_INPUT_ZERO.sendError(player);
+        Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(player);
         return;
       }
     }
@@ -56,7 +56,7 @@ public class CommandSpawn extends PluginCommand {
         return;
       }
       if (amount < 1) {
-        Message.INVALID_NUMERIC_INPUT_ZERO.sendError(player);
+        Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(player);
         return;
       }
     }
