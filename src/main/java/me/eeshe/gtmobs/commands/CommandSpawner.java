@@ -526,7 +526,11 @@ class CommandSpawnerTeleport extends PluginCommand {
       Message.SPAWNER_NOT_FOUND.sendError(player, Map.of("%spawner%", spawnerId));
       return;
     }
-    player.teleport(spawner.getLocation());
+    Location teleportLocation = spawner.getLocation().clone().add(0.5, 1, 0.5);
+    teleportLocation.setPitch(90);
+    teleportLocation.setYaw(0);
+
+    player.teleport(teleportLocation);
     Sound.TELEPORT.play(player);
   }
 }
