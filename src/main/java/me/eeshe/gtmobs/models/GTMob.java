@@ -60,6 +60,9 @@ public class GTMob {
    * @return GTMob corresponding to the passed ID.
    */
   public static GTMob fromId(String id) {
+    if (id == null) {
+      return null;
+    }
     return GTMobs.getInstance().getGTMobManager().getGTMobs().get(id);
   }
 
@@ -84,6 +87,17 @@ public class GTMob {
    * @return Spawned LivingEntity.
    */
   public LivingEntity spawn(Location location) {
+    return spawn(location, null);
+  }
+
+  /**
+   * Spawns the GTMob in the specified location from the passed Spawner
+   *
+   * @param location Location to spawn the mob in
+   * @param spawner  Spawner that spawned the mob
+   * @return Spawned LivingEntity
+   */
+  public LivingEntity spawn(Location location, Spawner spawner) {
     if (location == null) {
       return null;
     }
@@ -117,7 +131,7 @@ public class GTMob {
     for (ConfigSound spawnSound : spawnSounds) {
       spawnSound.play(location);
     }
-    new ActiveMob(livingEntity, id).register();
+    new ActiveMob(livingEntity, id, spawner).register();
     return livingEntity;
   }
 

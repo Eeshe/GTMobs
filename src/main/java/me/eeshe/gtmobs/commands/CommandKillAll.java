@@ -32,7 +32,7 @@ public class CommandKillAll extends PluginCommand {
         return;
       }
       if (radius < 1) {
-        Message.INVALID_NUMERIC_INPUT_ZERO.sendError(sender);
+        Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(sender);
         return;
       }
     }

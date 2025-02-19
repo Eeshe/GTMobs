@@ -1,16 +1,17 @@
 package me.eeshe.gtmobs.models.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.files.config.ConfigWrapper;
 import me.eeshe.gtmobs.util.StringUtil;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public enum Message {
   UNKNOWN_COMMAND("unknown-command", "&cUnknown command. Run &l/gtmobs &chelp to see the full list of commands."),
@@ -25,7 +26,7 @@ public enum Message {
 
   NON_NUMERIC_INPUT("non-numeric-input", "&cYou must enter a numeric value."),
 
-  INVALID_NUMERIC_INPUT_ZERO("invalid-numeric-input-zero", "&cValue must be higher than 0."),
+  AMOUNT_MUST_BE_HIGHER_THAN_ZERO("amount-must-be-higher-than-zero", "&cValue must be higher than 0."),
 
   USAGE_TEXT("usage-text", "&cUsage: %usage%."),
 
@@ -58,6 +59,72 @@ public enum Message {
       "Kills all the GTMobs. Can receive a radius parameter to limit the killing area."),
   KILL_ALL_COMMAND_USAGE("killall-command-usage", "/gtmobs killall [Radius]"),
   KILL_ALL_COMMAND_SUCCESS("killall-command-success", "&aSuccessfully killed &l%amount%&a GTMobs."),
+
+  SPAWNER_CREATE_COMMAND_INFO("spawner-create-command-info", "Creates a spawner with the specified name"),
+  SPAWNER_CREATE_COMMAND_USAGE("spawner-create-command-usage", "/gtmobs spawner create <ID>"),
+  SPAWNER_ALREADY_EXISTS("spawner-already-exists", "&cAn spawner with ID &l%id%&c already exists."),
+  NOT_LOOKING_AT_BLOCK("not-looking-at-block", "&cYou must be looking at a block while executing this command."),
+  ALREADY_SPAWNER_BLOCK("already-spawner-block", "&cThis block already is a spawner."),
+  SPAWNER_CREATE_COMMAND_SUCCESS("spawner-create-command-success", "&aSuccessfully created spawner &l%id%&a."),
+
+  SPAWNER_SET_MOB_COMMAND_INFO("spawner-set-mob-command-info", "Sets the specified mob as the selected spawner's mob."),
+  SPAWNER_SET_MOB_COMMAND_USAGE("spawner-set-mob-command-usage", "/gtmobs spawner set <Spawner> mob <Mob>"),
+  SPAWNER_NOT_FOUND("spawner-not-found", "&cSpawner &l%spawner%&c not found."),
+  SPAWNER_SET_MOB_COMMAND_SUCCESS("spawner-set-mob-command-success",
+      "&aSuccessfully set &l%spawner%'s&a mob to &l%mob%&a."),
+
+  SPAWNER_SET_MIN_COMMAND_INFO("spawner-set-min-command-info",
+      "Sets the minimum amount of spawned mobs of the specified spawner."),
+  SPAWNER_SET_MIN_COMMAND_USAGE("spawner-set-min-command-usage", "/gtmobs spawner set <Spawner> min <MinimumAmount>"),
+  AMOUNT_MUST_BE_ZERO_OR_HIGHER("amount-must-be-zero-or-higher", "&cAmount must be 0 or higher."),
+  MINIMUM_OVER_MAXIMUM("minimum-over-maximum", "&cThe minimum amount can't exceed the maximum amount &l(%maximum%)&c."),
+  SPAWNER_SET_MIN_COMMAND_SUCCESS("spawner-set-min-command-success",
+      "&aSuccessfully set &l%spawner%'s&a minimum amount to &l%minimum%&a."),
+
+  SPAWNER_SET_MAX_COMMAND_INFO("spawner-set-max-command-info",
+      "Sets the maximum amount of spawned mobs of the specified spawner."),
+  SPAWNER_SET_MAX_COMMAND_USAGE("spawner-set-max-command-usage", "/gtmobs spawner set <Spawner> max <MaximumAmount>"),
+  MAXIMUM_UNDER_MINIMUM("maximum-under-minimum",
+      "&cThe maximum amount can't be below the minimum amount &l(%minimum%)&c."),
+  SPAWNER_SET_MAX_COMMAND_SUCCESS("spawner-set-max-command-success",
+      "&aSuccessfully set &l%spawner%'s&a maximum amount to &l%maximum%&a."),
+
+  SPAWNER_SET_LIMIT_COMMAND_INFO("spawner-set-limit-command-info",
+      "Sets the limit of spawned mobs of the specified spawner."),
+  SPAWNER_SET_LIMIT_COMMAND_USAGE("spawner-set-limit-command-usage", "/gtmobs spawner set <Spawner> limit <Limit>"),
+  SPAWNER_SET_LIMIT_COMMAND_SUCCESS("spawner-set-limit-command-success",
+      "&aSuccessfully set &l%spawner%'s&a limit to &l%limit%&a."),
+
+  SPAWNER_SET_INTERVAL_COMMAND_INFO("spawner-set-interval-command-info",
+      "Sets the time interval between each mob spawn"),
+  SPAWNER_SET_INTERVAL_COMMAND_USAGE("spawner-set-interval-command-usage",
+      "/gtmobs spawner set <Spawner> interval <Time>"),
+  SPAWNER_SET_INTERVAL_COMMAND_SUCCESS("spawner-set-interval-command-success",
+      "&aSuccessfully set &l%spawner%'s&a spawn interval to &l%interval%&a."),
+
+  SPAWNER_SET_RADIUS_COMMAND_INFO("spawner-set-radius-command-info", "Sets the spawn radius of the spawner"),
+  SPAWNER_SET_RADIUS_COMMAND_USAGE("spawner-set-radius-command-usage", "/gtmobs spawner set <Spawner> radius <Radius>"),
+  SPAWNER_SET_RADIUS_COMMAND_SUCCESS("spawner-set-radius-command-success",
+      "&aSuccessfully set &l%spawner%'s&a spawn radius to &l%radius%&a."),
+
+  SPAWNER_COPY_COMMAND_INFO("spawner-copy-command-info",
+      "Copies the source spawner's configurations to a new spawner."),
+  SPAWNER_COPY_COMMAND_USAGE("spawner-copy-command-usage", "/gtmobs spawner copy <Source> <NewSpawnerID>"),
+  SPAWNER_COPY_COMMAND_SUCCESS("spawner-copy-command-success",
+      "&aSuccessfully copied &l%source%'s&a configurations to new spawner &l%spawner%&a."),
+
+  SPAWNER_DELETE_COMMAND_INFO("spawner-delete-command-info", "Deletes the specified spawner."),
+  SPAWNER_DELETE_COMMAND_USAGE("spawner-delete-command-usage", "/gtmobs spawner delete"),
+  SPAWNER_DELETE_COMMAND_SUCCESS("spawner-delete-command-success", "&aSuccessfully deleted &l%spawner%&a."),
+
+  SPAWNER_LIST_COMMAND_INFO("spawner-list-command-info", "Lists all the active spawners"),
+  SPAWNER_LIST_COMMAND_USAGE("spawner-list-command-usage", "/gtmobs spawner list [Near] [Radius] [Page]"),
+  NO_SPAWNERS_FOUND("no-spawners-found", "&cNo spawners found."),
+  PAGE_NOT_FOUND("page-not-found", "&cPage &l%page%&c not found."),
+  SPAWNER_LIST_ENTRY("spawner-list-entry", "&e- &a%spawner%"),
+
+  SPAWNER_TELEPORT_COMMAND_INFO("spawner-teleport-command-info", "Teleports you to the specified spawner."),
+  SPAWNER_TELEPORT_COMMAND_USAGE("spawner-teleport-command-usage", "/gtmobs spawner teleport <Spawner>"),
   ;
 
   private final static ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "messages.yml");
