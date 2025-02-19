@@ -31,11 +31,12 @@ public class CommandSpawner extends PluginCommand {
 
     SPAWNER_COMMANDS.addAll(List.of(
         new CommandSpawnerCreate(plugin, this),
-        new CommandSpawnerSet(plugin, this),
+        new CommandSpawnerInfo(plugin, this),
         new CommandSpawnerCopy(plugin, this),
         new CommandSpawnerDelete(plugin, this),
         new CommandSpawnerList(plugin, this),
-        new CommandSpawnerTeleport(plugin, this)));
+        new CommandSpawnerTeleport(plugin, this),
+        new CommandSpawnerSet(plugin, this)));
 
     setName("spawner");
     setPermission("gtmobs.admin");
@@ -75,6 +76,260 @@ class CommandSpawnerCreate extends PluginCommand {
     }
     new Spawner(spawnerId, targetBlock.getLocation()).register();
     Message.SPAWNER_CREATE_COMMAND_SUCCESS.sendSuccess(player, Map.of("%id%", spawnerId));
+  }
+}
+
+class CommandSpawnerInfo extends PluginCommand {
+
+  public CommandSpawnerInfo(GTMobs plugin, PluginCommand parentPluginCommand) {
+    super(plugin, parentPluginCommand);
+
+    setName("info");
+    setPermission("gtmobs.admin");
+    setInfoMessage(Message.SPAWNER_INFO_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_INFO_COMMAND_USAGE);
+    setArgumentAmount(1);
+    setUniversalCommand(true);
+    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
+  }
+
+  @Override
+  public void execute(CommandSender sender, String[] args) {
+    String spawnerId = args[0];
+    Spawner spawner = Spawner.fromId(spawnerId);
+    if (spawner == null) {
+      Message.SPAWNER_NOT_FOUND.sendError(sender, Map.of("%spawner%", spawnerId));
+      return;
+    }
+    Location location = spawner.getLocation();
+    Message.SPAWNER_INFO_COMMAND_SUCCESS.sendSuccess(sender, Map.ofEntries(
+        Map.entry("%spawner%", spawner.getId()),
+        Map.entry("%mob%", String.valueOf(spawner.getMobId())),
+        Map.entry("%location%", String.format("X: %s | Y: %s | Z: %s",
+            location.getBlockX(), location.getBlockY(), location.getBlockZ())),
+        Map.entry("%minimum%", StringUtil.formatNumber(spawner.getAmount().getMin())),
+        Map.entry("%maximum%", StringUtil.formatNumber(spawner.getAmount().getMax())),
+        Map.entry("%limit%", StringUtil.formatNumber(spawner.getLimit())),
+        Map.entry("%interval%", StringUtil.formatSeconds(spawner.getFrequencyTicks() / 20)),
+        Map.entry("%radius%", StringUtil.formatNumber(spawner.getRadius()))));
+  }
+}
+
+class CommandSpawnerCopy extends PluginCommand {
+
+  public CommandSpawnerCopy(GTMobs plugin, PluginCommand parentPluginCommand) {
+    super(plugin, parentPluginCommand);
+
+    setName("copy");
+    setPermission("gtmobs.admin");
+    setInfoMessage(Message.SPAWNER_COPY_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_COPY_COMMAND_USAGE);
+    setArgumentAmount(2);
+    setPlayerCommand(true);
+    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
+  }
+
+  @Override
+  public void execute(CommandSender sender, String[] args) {
+    Player player = (Player) sender;
+    String sourceSpawnerId = args[0];
+    Spawner sourceSpawner = Spawner.fromId(sourceSpawnerId);
+    if (sourceSpawner == null) {
+      Message.SPAWNER_NOT_FOUND.sendError(player, Map.of("%spawner%", sourceSpawnerId));
+      return;
+    }
+    Block targetBlock = player.getTargetBlock((Set<Material>) null, 5);
+    if (targetBlock == null) {
+      Message.NOT_LOOKING_AT_BLOCK.sendError(player);
+      return;
+    }
+    if (Spawner.fromLocation(targetBlock.getLocation()) != null) {
+      Message.ALREADY_SPAWNER_BLOCK.sendError(player);
+      return;
+    }
+    String newSpawnerId = args[1];
+    if (Spawner.fromId(newSpawnerId) != null) {
+      Message.SPAWNER_ALREADY_EXISTS.sendError(player, Map.of("%id%", newSpawnerId));
+      return;
+    }
+    new Spawner(newSpawnerId, targetBlock.getLocation(), sourceSpawner).register();
+    Message.SPAWNER_COPY_COMMAND_SUCCESS.sendSuccess(player, Map.ofEntries(
+        Map.entry("%source%", sourceSpawnerId),
+        Map.entry("%spawner%", newSpawnerId)));
+  }
+}
+
+class CommandSpawnerDelete extends PluginCommand {
+
+  public CommandSpawnerDelete(GTMobs plugin, PluginCommand parentPluginCommand) {
+    super(plugin, parentPluginCommand);
+
+    setName("delete");
+    setPermission("gtmobs.admin");
+    setInfoMessage(Message.SPAWNER_DELETE_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_DELETE_COMMAND_USAGE);
+    setArgumentAmount(1);
+    setUniversalCommand(true);
+    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
+  }
+
+  @Override
+  public void execute(CommandSender sender, String[] args) {
+    String spawnerId = args[0];
+    Spawner spawner = Spawner.fromId(spawnerId);
+    if (spawner == null) {
+      Message.SPAWNER_NOT_FOUND.sendError(sender, Map.of("%spawner%", spawnerId));
+      return;
+    }
+    spawner.unregister();
+    Message.SPAWNER_DELETE_COMMAND_SUCCESS.sendSuccess(sender, Map.of("%spawner%", spawnerId));
+  }
+}
+
+class CommandSpawnerList extends PluginCommand {
+
+  public CommandSpawnerList(GTMobs plugin, PluginCommand parentPluginCommand) {
+    super(plugin, parentPluginCommand);
+
+    setName("list");
+    setPermission("gtmobs.admin");
+    setInfoMessage(Message.SPAWNER_LIST_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_LIST_COMMAND_USAGE);
+    setArgumentAmount(0);
+    setUniversalCommand(true);
+    setCompletions(Map.of(0, (sender, args) -> List.of("near")));
+  }
+
+  @Override
+  public void execute(CommandSender sender, String[] args) {
+    boolean isNearSearch = false;
+    if (args.length > 0) {
+      isNearSearch = args[0].equalsIgnoreCase("near");
+    }
+    if (isNearSearch && !(sender instanceof Player)) {
+      Message.PLAYER_COMMAND.sendError(sender);
+      return;
+    }
+    Double radius = 0D;
+    if (isNearSearch && args.length > 1) {
+      radius = StringUtil.parseDouble(sender, args[1]);
+      if (radius == null) {
+        return;
+      }
+    }
+    if (isNearSearch && radius < 1) {
+      Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(sender);
+      return;
+    }
+    Integer page = 1;
+    if (args.length > 0) {
+      int pageIndex;
+      if (isNearSearch) {
+        pageIndex = 2;
+      } else {
+        pageIndex = 0;
+      }
+      if (pageIndex >= args.length) {
+        Message.USAGE_TEXT.sendError(sender, Map.of("%usage%", getUsageMessage().getValue()));
+        return;
+      }
+      page = StringUtil.parseInteger(sender, args[pageIndex]);
+      if (page == null) {
+        return;
+      }
+      if (page < 1) {
+        Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(sender);
+        return;
+      }
+    }
+    List<Spawner> spawners;
+    if (!isNearSearch) {
+      spawners = new ArrayList<>(getPlugin().getSpawnerManager()
+          .getSpawners().values());
+    } else {
+      // Filter only near spawners
+      Location center = ((Player) sender).getLocation();
+      radius = Math.pow(radius, 2);
+      spawners = new ArrayList<>();
+      for (Spawner spawner : getPlugin().getSpawnerManager().getSpawners().values()) {
+        if (spawner.getLocation().distanceSquared(center) > radius) {
+          continue;
+        }
+        spawners.add(spawner);
+      }
+    }
+    int pageSize = 10;
+
+    // Calculate start and end indices
+    int startIndex = (page - 1) * pageSize;
+    if (startIndex > spawners.size()) {
+      Message.PAGE_NOT_FOUND.sendError(sender, Map.of("%page%", StringUtil.formatNumber(page)));
+      return;
+    }
+    int endIndex = Math.min(startIndex + pageSize, spawners.size());
+
+    // Get the sublist for the specified page
+    spawners = spawners.subList(startIndex, endIndex);
+    if (spawners.isEmpty()) {
+      Message.NO_SPAWNERS_FOUND.sendError(sender);
+      return;
+    }
+
+    Messager.sendMessage(sender, generateSpawnerListString(spawners));
+    Sound.SUCCESS.play(sender);
+  }
+
+  /**
+   * Generates the String with the spawner list
+   *
+   * @param spawners Spawners to display in the list
+   * @return Spawner list String
+   */
+  private String generateSpawnerListString(List<Spawner> spawners) {
+    StringBuilder stringBuilder = new StringBuilder();
+    Message spawnerEntryFormat = Message.SPAWNER_LIST_ENTRY;
+    for (int index = 0; index < spawners.size(); index++) {
+      Spawner spawner = spawners.get(index);
+      stringBuilder.append(spawnerEntryFormat.getFormattedValue(
+          Map.of("%spawner%", spawner.getId())));
+      if (index == spawners.size() - 1) {
+        continue;
+      }
+      stringBuilder.append("\n");
+    }
+    return stringBuilder.toString();
+  }
+}
+
+class CommandSpawnerTeleport extends PluginCommand {
+
+  public CommandSpawnerTeleport(GTMobs plugin, PluginCommand parentPluginCommand) {
+    super(plugin, parentPluginCommand);
+
+    setName("teleport");
+    setPermission("gtmobs.admin");
+    setInfoMessage(Message.SPAWNER_TELEPORT_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_TELEPORT_COMMAND_USAGE);
+    setArgumentAmount(1);
+    setPlayerCommand(true);
+    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
+  }
+
+  @Override
+  public void execute(CommandSender sender, String[] args) {
+    Player player = (Player) sender;
+    String spawnerId = args[0];
+    Spawner spawner = Spawner.fromId(spawnerId);
+    if (spawner == null) {
+      Message.SPAWNER_NOT_FOUND.sendError(player, Map.of("%spawner%", spawnerId));
+      return;
+    }
+    Location teleportLocation = spawner.getLocation().clone().add(0.5, 1, 0.5);
+    teleportLocation.setPitch(90);
+    teleportLocation.setYaw(0);
+
+    player.teleport(teleportLocation);
+    Sound.TELEPORT.play(player);
   }
 }
 
@@ -314,223 +569,5 @@ class CommandSpawnerSetRadius extends CommandSpawnerSet {
     Message.SPAWNER_SET_RADIUS_COMMAND_SUCCESS.sendSuccess(sender, Map.ofEntries(
         Map.entry("%spawner%", spawner.getId()),
         Map.entry("%radius%", StringUtil.formatNumber(radius))));
-  }
-}
-
-class CommandSpawnerCopy extends PluginCommand {
-
-  public CommandSpawnerCopy(GTMobs plugin, PluginCommand parentPluginCommand) {
-    super(plugin, parentPluginCommand);
-
-    setName("copy");
-    setPermission("gtmobs.admin");
-    setInfoMessage(Message.SPAWNER_COPY_COMMAND_INFO);
-    setUsageMessage(Message.SPAWNER_COPY_COMMAND_USAGE);
-    setArgumentAmount(2);
-    setPlayerCommand(true);
-    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
-  }
-
-  @Override
-  public void execute(CommandSender sender, String[] args) {
-    Player player = (Player) sender;
-    String sourceSpawnerId = args[0];
-    Spawner sourceSpawner = Spawner.fromId(sourceSpawnerId);
-    if (sourceSpawner == null) {
-      Message.SPAWNER_NOT_FOUND.sendError(player, Map.of("%spawner%", sourceSpawnerId));
-      return;
-    }
-    Block targetBlock = player.getTargetBlock((Set<Material>) null, 5);
-    if (targetBlock == null) {
-      Message.NOT_LOOKING_AT_BLOCK.sendError(player);
-      return;
-    }
-    if (Spawner.fromLocation(targetBlock.getLocation()) != null) {
-      Message.ALREADY_SPAWNER_BLOCK.sendError(player);
-      return;
-    }
-    String newSpawnerId = args[1];
-    if (Spawner.fromId(newSpawnerId) != null) {
-      Message.SPAWNER_ALREADY_EXISTS.sendError(player, Map.of("%id%", newSpawnerId));
-      return;
-    }
-    new Spawner(newSpawnerId, targetBlock.getLocation(), sourceSpawner).register();
-    Message.SPAWNER_COPY_COMMAND_SUCCESS.sendSuccess(player, Map.ofEntries(
-        Map.entry("%source%", sourceSpawnerId),
-        Map.entry("%spawner%", newSpawnerId)));
-  }
-}
-
-class CommandSpawnerDelete extends PluginCommand {
-
-  public CommandSpawnerDelete(GTMobs plugin, PluginCommand parentPluginCommand) {
-    super(plugin, parentPluginCommand);
-
-    setName("delete");
-    setPermission("gtmobs.admin");
-    setInfoMessage(Message.SPAWNER_DELETE_COMMAND_INFO);
-    setUsageMessage(Message.SPAWNER_DELETE_COMMAND_USAGE);
-    setArgumentAmount(1);
-    setUniversalCommand(true);
-    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
-  }
-
-  @Override
-  public void execute(CommandSender sender, String[] args) {
-    String spawnerId = args[0];
-    Spawner spawner = Spawner.fromId(spawnerId);
-    if (spawner == null) {
-      Message.SPAWNER_NOT_FOUND.sendError(sender, Map.of("%spawner%", spawnerId));
-      return;
-    }
-    spawner.unregister();
-    Message.SPAWNER_DELETE_COMMAND_SUCCESS.sendSuccess(sender, Map.of("%spawner%", spawnerId));
-  }
-}
-
-class CommandSpawnerList extends PluginCommand {
-
-  public CommandSpawnerList(GTMobs plugin, PluginCommand parentPluginCommand) {
-    super(plugin, parentPluginCommand);
-
-    setName("list");
-    setPermission("gtmobs.admin");
-    setInfoMessage(Message.SPAWNER_LIST_COMMAND_INFO);
-    setUsageMessage(Message.SPAWNER_LIST_COMMAND_USAGE);
-    setArgumentAmount(0);
-    setUniversalCommand(true);
-    setCompletions(Map.of(0, (sender, args) -> List.of("near")));
-  }
-
-  @Override
-  public void execute(CommandSender sender, String[] args) {
-    boolean isNearSearch = false;
-    if (args.length > 0) {
-      isNearSearch = args[0].equalsIgnoreCase("near");
-    }
-    if (isNearSearch && !(sender instanceof Player)) {
-      Message.PLAYER_COMMAND.sendError(sender);
-      return;
-    }
-    Double radius = 0D;
-    if (isNearSearch && args.length > 1) {
-      radius = StringUtil.parseDouble(sender, args[1]);
-      if (radius == null) {
-        return;
-      }
-    }
-    if (isNearSearch && radius < 1) {
-      Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(sender);
-      return;
-    }
-    Integer page = 1;
-    if (args.length > 0) {
-      int pageIndex;
-      if (isNearSearch) {
-        pageIndex = 2;
-      } else {
-        pageIndex = 0;
-      }
-      if (pageIndex >= args.length) {
-        Message.USAGE_TEXT.sendError(sender, Map.of("%usage%", getUsageMessage().getValue()));
-        return;
-      }
-      page = StringUtil.parseInteger(sender, args[pageIndex]);
-      if (page == null) {
-        return;
-      }
-      if (page < 1) {
-        Message.AMOUNT_MUST_BE_HIGHER_THAN_ZERO.sendError(sender);
-        return;
-      }
-    }
-    List<Spawner> spawners;
-    if (!isNearSearch) {
-      spawners = new ArrayList<>(getPlugin().getSpawnerManager()
-          .getSpawners().values());
-    } else {
-      // Filter only near spawners
-      Location center = ((Player) sender).getLocation();
-      radius = Math.pow(radius, 2);
-      spawners = new ArrayList<>();
-      for (Spawner spawner : getPlugin().getSpawnerManager().getSpawners().values()) {
-        if (spawner.getLocation().distanceSquared(center) > radius) {
-          continue;
-        }
-        spawners.add(spawner);
-      }
-    }
-    int pageSize = 10;
-
-    // Calculate start and end indices
-    int startIndex = (page - 1) * pageSize;
-    if (startIndex > spawners.size()) {
-      Message.PAGE_NOT_FOUND.sendError(sender, Map.of("%page%", StringUtil.formatNumber(page)));
-      return;
-    }
-    int endIndex = Math.min(startIndex + pageSize, spawners.size());
-
-    // Get the sublist for the specified page
-    spawners = spawners.subList(startIndex, endIndex);
-    if (spawners.isEmpty()) {
-      Message.NO_SPAWNERS_FOUND.sendError(sender);
-      return;
-    }
-
-    Messager.sendMessage(sender, generateSpawnerListString(spawners));
-    Sound.SUCCESS.play(sender);
-  }
-
-  /**
-   * Generates the String with the spawner list
-   *
-   * @param spawners Spawners to display in the list
-   * @return Spawner list String
-   */
-  private String generateSpawnerListString(List<Spawner> spawners) {
-    StringBuilder stringBuilder = new StringBuilder();
-    Message spawnerEntryFormat = Message.SPAWNER_LIST_ENTRY;
-    for (int index = 0; index < spawners.size(); index++) {
-      Spawner spawner = spawners.get(index);
-      stringBuilder.append(spawnerEntryFormat.getFormattedValue(
-          Map.of("%spawner%", spawner.getId())));
-      if (index == spawners.size() - 1) {
-        continue;
-      }
-      stringBuilder.append("\n");
-    }
-    return stringBuilder.toString();
-  }
-}
-
-class CommandSpawnerTeleport extends PluginCommand {
-
-  public CommandSpawnerTeleport(GTMobs plugin, PluginCommand parentPluginCommand) {
-    super(plugin, parentPluginCommand);
-
-    setName("teleport");
-    setPermission("gtmobs.admin");
-    setInfoMessage(Message.SPAWNER_TELEPORT_COMMAND_INFO);
-    setUsageMessage(Message.SPAWNER_TELEPORT_COMMAND_USAGE);
-    setArgumentAmount(1);
-    setPlayerCommand(true);
-    setCompletions(Map.of(0, (sender, args) -> CompletionUtil.getSpawnerIds()));
-  }
-
-  @Override
-  public void execute(CommandSender sender, String[] args) {
-    Player player = (Player) sender;
-    String spawnerId = args[0];
-    Spawner spawner = Spawner.fromId(spawnerId);
-    if (spawner == null) {
-      Message.SPAWNER_NOT_FOUND.sendError(player, Map.of("%spawner%", spawnerId));
-      return;
-    }
-    Location teleportLocation = spawner.getLocation().clone().add(0.5, 1, 0.5);
-    teleportLocation.setPitch(90);
-    teleportLocation.setYaw(0);
-
-    player.teleport(teleportLocation);
-    Sound.TELEPORT.play(player);
   }
 }

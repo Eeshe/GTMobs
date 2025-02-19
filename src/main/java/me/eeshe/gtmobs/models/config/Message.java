@@ -67,6 +67,35 @@ public enum Message {
   ALREADY_SPAWNER_BLOCK("already-spawner-block", "&cThis block already is a spawner."),
   SPAWNER_CREATE_COMMAND_SUCCESS("spawner-create-command-success", "&aSuccessfully created spawner &l%id%&a."),
 
+  SPAWNER_INFO_COMMAND_INFO("spawner-info-command-info", "Displays information about the specified spawner."),
+  SPAWNER_INFO_COMMAND_USAGE("spawner-info-command-usage", "/gtmobs spawner info <Spawner>"),
+  SPAWNER_INFO_COMMAND_SUCCESS("spawner-info-command-success", "&e&l%spawner% Info\n" +
+      "&eMob: &b%mob%\n" +
+      "&eLocation: &b%location%\n" +
+      "&eAmount: &b%minimum%-%maximum%\n" +
+      "&eLimit: &b%limit%\n" +
+      "&eInterval: &b%interval%\n" +
+      "&eRadius: &b%radius%"),
+
+  SPAWNER_COPY_COMMAND_INFO("spawner-copy-command-info",
+      "Copies the source spawner's configurations to a new spawner."),
+  SPAWNER_COPY_COMMAND_USAGE("spawner-copy-command-usage", "/gtmobs spawner copy <Source> <NewSpawnerID>"),
+  SPAWNER_COPY_COMMAND_SUCCESS("spawner-copy-command-success",
+      "&aSuccessfully copied &l%source%'s&a configurations to new spawner &l%spawner%&a."),
+
+  SPAWNER_DELETE_COMMAND_INFO("spawner-delete-command-info", "Deletes the specified spawner."),
+  SPAWNER_DELETE_COMMAND_USAGE("spawner-delete-command-usage", "/gtmobs spawner delete"),
+  SPAWNER_DELETE_COMMAND_SUCCESS("spawner-delete-command-success", "&aSuccessfully deleted &l%spawner%&a."),
+
+  SPAWNER_LIST_COMMAND_INFO("spawner-list-command-info", "Lists all the active spawners"),
+  SPAWNER_LIST_COMMAND_USAGE("spawner-list-command-usage", "/gtmobs spawner list [Near] [Radius] [Page]"),
+  NO_SPAWNERS_FOUND("no-spawners-found", "&cNo spawners found."),
+  PAGE_NOT_FOUND("page-not-found", "&cPage &l%page%&c not found."),
+  SPAWNER_LIST_ENTRY("spawner-list-entry", "&e- &a%spawner%"),
+
+  SPAWNER_TELEPORT_COMMAND_INFO("spawner-teleport-command-info", "Teleports you to the specified spawner."),
+  SPAWNER_TELEPORT_COMMAND_USAGE("spawner-teleport-command-usage", "/gtmobs spawner teleport <Spawner>"),
+
   SPAWNER_SET_MOB_COMMAND_INFO("spawner-set-mob-command-info", "Sets the specified mob as the selected spawner's mob."),
   SPAWNER_SET_MOB_COMMAND_USAGE("spawner-set-mob-command-usage", "/gtmobs spawner set <Spawner> mob <Mob>"),
   SPAWNER_NOT_FOUND("spawner-not-found", "&cSpawner &l%spawner%&c not found."),
@@ -107,24 +136,6 @@ public enum Message {
   SPAWNER_SET_RADIUS_COMMAND_SUCCESS("spawner-set-radius-command-success",
       "&aSuccessfully set &l%spawner%'s&a spawn radius to &l%radius%&a."),
 
-  SPAWNER_COPY_COMMAND_INFO("spawner-copy-command-info",
-      "Copies the source spawner's configurations to a new spawner."),
-  SPAWNER_COPY_COMMAND_USAGE("spawner-copy-command-usage", "/gtmobs spawner copy <Source> <NewSpawnerID>"),
-  SPAWNER_COPY_COMMAND_SUCCESS("spawner-copy-command-success",
-      "&aSuccessfully copied &l%source%'s&a configurations to new spawner &l%spawner%&a."),
-
-  SPAWNER_DELETE_COMMAND_INFO("spawner-delete-command-info", "Deletes the specified spawner."),
-  SPAWNER_DELETE_COMMAND_USAGE("spawner-delete-command-usage", "/gtmobs spawner delete"),
-  SPAWNER_DELETE_COMMAND_SUCCESS("spawner-delete-command-success", "&aSuccessfully deleted &l%spawner%&a."),
-
-  SPAWNER_LIST_COMMAND_INFO("spawner-list-command-info", "Lists all the active spawners"),
-  SPAWNER_LIST_COMMAND_USAGE("spawner-list-command-usage", "/gtmobs spawner list [Near] [Radius] [Page]"),
-  NO_SPAWNERS_FOUND("no-spawners-found", "&cNo spawners found."),
-  PAGE_NOT_FOUND("page-not-found", "&cPage &l%page%&c not found."),
-  SPAWNER_LIST_ENTRY("spawner-list-entry", "&e- &a%spawner%"),
-
-  SPAWNER_TELEPORT_COMMAND_INFO("spawner-teleport-command-info", "Teleports you to the specified spawner."),
-  SPAWNER_TELEPORT_COMMAND_USAGE("spawner-teleport-command-usage", "/gtmobs spawner teleport <Spawner>"),
   ;
 
   private final static ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "messages.yml");

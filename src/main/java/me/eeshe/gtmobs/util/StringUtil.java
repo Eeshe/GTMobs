@@ -1,12 +1,5 @@
 package me.eeshe.gtmobs.util;
 
-import me.eeshe.gtmobs.GTMobs;
-import me.eeshe.gtmobs.models.config.Message;
-import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
-import org.bukkit.command.CommandSender;
-import org.bukkit.inventory.ItemStack;
-
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -15,6 +8,14 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
+import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.ItemStack;
+
+import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.models.config.Message;
 
 /**
  * This utility class helps to format or parse Strings to other Strings or
@@ -181,12 +182,8 @@ public class StringUtil {
   public static String formatSeconds(long seconds) {
     long minutes = TimeUnit.SECONDS.toMinutes(seconds) % 60;
     seconds -= TimeUnit.MINUTES.toSeconds(minutes);
-    long hours = TimeUnit.SECONDS.toHours(seconds) % 24;
-    seconds -= TimeUnit.HOURS.toSeconds(hours);
-    long days = TimeUnit.SECONDS.toDays(seconds);
-    seconds -= TimeUnit.DAYS.toSeconds(days);
 
-    return String.format("%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
+    return String.format("%02d:%02d", minutes, seconds);
   }
 
   /**
