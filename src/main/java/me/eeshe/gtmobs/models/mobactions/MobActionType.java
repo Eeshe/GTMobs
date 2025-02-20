@@ -3,6 +3,8 @@ package me.eeshe.gtmobs.models.mobactions;
 public enum MobActionType {
   CONSOLE_COMMAND,
   EFFECT,
+  PARTICLE,
+  SOUND,
   SPAWN,
   SUICIDE;
 

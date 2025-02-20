@@ -28,6 +28,8 @@ import me.eeshe.gtmobs.models.mobactions.MobAction;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 import me.eeshe.gtmobs.models.mobactions.MobActionTarget;
 import me.eeshe.gtmobs.models.mobactions.MobActionType;
+import me.eeshe.gtmobs.models.mobactions.ParticleMobAction;
+import me.eeshe.gtmobs.models.mobactions.SoundMobAction;
 import me.eeshe.gtmobs.models.mobactions.SpawnMobAction;
 import me.eeshe.gtmobs.models.mobactions.SuicideMobAction;
 import me.eeshe.gtmobs.util.ConfigUtil;
@@ -358,6 +360,12 @@ public class MobConfig extends ConfigWrapper {
         case EFFECT:
           mobAction = computeEffectMobAction(params);
           break;
+        case PARTICLE:
+          mobAction = computeParticleMobAction(params);
+          break;
+        case SOUND:
+          mobAction = computeSoundMobAction(params);
+          break;
         case SPAWN:
           mobAction = computeSpawnMobAction(params);
           break;
@@ -459,6 +467,54 @@ public class MobConfig extends ConfigWrapper {
         potionEffectType,
         durationTicks,
         amplifier - 1));
+  }
+
+  /**
+   * Computes a ParticleMobAction from the passed parameters
+   *
+   * @param params Parameters to compute
+   * @return Computed ParticleMobAction
+   */
+  private ParticleMobAction computeParticleMobAction(String[] params) {
+    if (params.length < 6) {
+      LogUtil.sendWarnLog("Not enough parameters provided for ParticleMobAction. Got: " +
+          Arrays.toString(params));
+      return null;
+    }
+    ConfigParticle configParticle = ConfigUtil.computeConfigParticle(
+        String.join("-", Arrays.copyOfRange(params, 0, 6)));
+    if (configParticle == null) {
+      return null;
+    }
+    long delayTicks = 0;
+    if (params.length > 6) {
+      try {
+        delayTicks = Long.parseLong(params[6]);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Invalid delay ticks '" + params[6] + "' from parameters: " +
+            Arrays.toString(params) + ". Using 0.");
+      }
+    }
+    return new ParticleMobAction(configParticle, delayTicks);
+  }
+
+  /**
+   * Computes a SoundMobAction from the passed parameters
+   *
+   * @param params Parameters to compute
+   * @return Computed SoundMobAction
+   */
+  private SoundMobAction computeSoundMobAction(String[] params) {
+    if (params.length < 4) {
+      LogUtil.sendWarnLog("Not enough parameters provided for SoundMobAction. Got: " +
+          Arrays.toString(params));
+      return null;
+    }
+    ConfigSound configSound = computeConfigSound(String.join("-", params));
+    if (configSound == null) {
+      return null;
+    }
+    return new SoundMobAction(configSound);
   }
 
   /**

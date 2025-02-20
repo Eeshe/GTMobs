@@ -1,5 +1,7 @@
 package me.eeshe.gtmobs.models.config;
 
+import java.util.List;
+
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -59,7 +61,13 @@ public class ConfigParticle {
   }
 
   public String toString() {
-    return particle.name() + "-" + amount;
+    return String.join("-", List.of(
+        particle.name(),
+        String.valueOf(amount),
+        String.valueOf(xOffSet),
+        String.valueOf(yOffSet),
+        String.valueOf(zOffSet),
+        String.valueOf(speed)));
   }
 
   public Particle getParticle() {

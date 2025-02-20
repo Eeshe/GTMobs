@@ -1,5 +1,7 @@
 package me.eeshe.gtmobs.models.config;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -47,7 +49,11 @@ public class ConfigSound {
   }
 
   public String toString() {
-    return sound.name() + "-" + volume + "-" + pitch;
+    return String.join(",", String.join("-", List.of(
+        sound.name(),
+        String.valueOf(volume),
+        String.valueOf(pitch),
+        String.valueOf(delayTicks))));
   }
 
   public Sound getSound() {
