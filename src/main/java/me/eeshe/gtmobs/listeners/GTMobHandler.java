@@ -1,8 +1,5 @@
 package me.eeshe.gtmobs.listeners;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -61,8 +58,7 @@ public class GTMobHandler implements Listener {
     GTMob gtMob = activeMob.getGTMob();
 
     Entity damager = event.getDamager();
-    for (MobActionChain mobActionChain : Stream.concat(gtMob.getOnHitActions().stream(),
-        gtMob.getOnTargetHitActions().stream()).collect(Collectors.toList())) {
+    for (MobActionChain mobActionChain : gtMob.getOnHitActions()) {
       mobActionChain.attemptExecution(activeMob.getLivingEntity(), damager);
     }
     Location location = activeMob.getLivingEntity().getLocation().add(0, 1, 0);

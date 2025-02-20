@@ -1,7 +1,10 @@
 package me.eeshe.gtmobs.models;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import me.eeshe.gtmobs.GTMobs;
 
@@ -9,6 +12,8 @@ public class ActiveMob {
   private final LivingEntity livingEntity;
   private final String gtMobId;
   private final Spawner spawner;
+
+  private BukkitTask despawnTask;
 
   public ActiveMob(LivingEntity livingEntity, String gtMobId, Spawner spawner) {
     this.livingEntity = livingEntity;
@@ -53,21 +58,77 @@ public class ActiveMob {
    */
   public void register() {
     GTMobs.getInstance().getActiveMobManager().getActiveMobs().put(livingEntity.getUniqueId(), this);
+    startDespawnTask();
   }
 
   /**
-   * Unregisters the ActiveMob from the ActiveMobManager class.
+   * Starts the task that will periodically try to despawn the ActiveMob
+   */
+  private void startDespawnTask() {
+    GTMobs plugin = GTMobs.getInstance();
+    this.despawnTask = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+      private final long despawnTimerSeconds = plugin.getMainConfig().getDespawnTimeSeconds();
+      private long despawnCounter = 0;
+
+      @Override
+      public void run() {
+        if (hasPlayersAround()) {
+          despawnCounter = 0;
+          return;
+        }
+        if (despawnCounter >= despawnTimerSeconds) {
+          despawn();
+          return;
+        }
+        despawnCounter += 1;
+      }
+    }, 20L, 20L);
+  }
+
+  /**
+   * Checks if the ActiveMob has players nearby based on the despawn radius
+   *
+   * @return True if the ActiveMob has nearby players
+   */
+  private boolean hasPlayersAround() {
+    double despawnRadius = GTMobs.getInstance().getMainConfig().getDespawnRadius();
+    for (Entity entity : livingEntity.getNearbyEntities(despawnRadius, despawnRadius, despawnRadius)) {
+      if (!(entity instanceof Player)) {
+        continue;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Despawns and unregisters the GTMob
+   */
+  public void despawn() {
+    livingEntity.remove();
+    unregister();
+  }
+
+  /**
+   * Unregisters the ActiveMob from the ActiveMobManager class
    */
   public void unregister() {
     GTMobs.getInstance().getActiveMobManager().getActiveMobs().remove(livingEntity.getUniqueId());
     if (spawner != null) {
       spawner.removeSpawnedMob(livingEntity);
     }
+    stopDespawnTask();
   }
 
-  public void despawn() {
-    livingEntity.remove();
-    unregister();
+  /**
+   * Stops the despawn task
+   */
+  private void stopDespawnTask() {
+    if (despawnTask == null) {
+      return;
+    }
+    despawnTask.cancel();
+    despawnTask = null;
   }
 
   public LivingEntity getLivingEntity() {

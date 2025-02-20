@@ -52,6 +52,7 @@ public enum Message {
 
   SPAWN_COMMAND_INFO("spawn-command-info", "Spawns the specified GTMob."),
   SPAWN_COMMAND_USAGE("spawn-command-usage", "/gtmobs spawn <Mob> [Amount] [Radius]"),
+  NO_VALID_SPAWN_LOCATION("no-valid-spawn-location", "&cCouldn't find a valid spawn location."),
   GTMOB_NOT_FOUND("gtmob-not-found", "&cGTMob &l%id%&c not found."),
   SPAWN_COMMAND_SUCCESS("spawn-command-success", "&aSuccessfully spawned &l%amount% %id%&a."),
 

@@ -1,7 +1,10 @@
 package me.eeshe.gtmobs.commands;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -60,9 +63,16 @@ public class CommandSpawn extends PluginCommand {
         return;
       }
     }
-    Location centerLocation = player.getLocation();
+    List<Location> safeLocations = LocationUtil.computeEmptyLocationsForSpawn(player.getEyeLocation(),
+        radius.intValue(), amount);
+    if (safeLocations.isEmpty()) {
+      Message.NO_VALID_SPAWN_LOCATION.sendError(sender);
+      return;
+    }
+    Random random = ThreadLocalRandom.current();
     for (int i = 0; i < amount; i++) {
-      gtMob.spawn(LocationUtil.generateRandomLocationRadius(centerLocation, radius));
+      Location spawnLocation = safeLocations.get(random.nextInt(safeLocations.size()));
+      gtMob.spawn(spawnLocation);
     }
     Message.SPAWN_COMMAND_SUCCESS.sendSuccess(player, Map.ofEntries(
         Map.entry("%amount%", StringUtil.formatNumber(amount)),

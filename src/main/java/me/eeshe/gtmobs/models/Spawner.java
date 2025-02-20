@@ -2,8 +2,11 @@ package me.eeshe.gtmobs.models;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -166,12 +169,15 @@ public class Spawner {
       LogUtil.sendWarnLog("Unknown GTMob '" + mobId + "' for spawner '" + id + "'.");
       return;
     }
-    for (int i = 0; i < Math.min(amount.generateRandom(), limit - spawnedMobs.size()); i++) {
-      Location spawnLocation = LocationUtil.generateRandomLocationOffset(location,
-          radius, false, true);
-      if (spawnLocation == null) {
-        continue;
-      }
+    int spawnAmount = Math.min(amount.generateRandom(), limit - spawnedMobs.size());
+    List<Location> safeLocations = LocationUtil.computeEmptyLocationsForSpawn(location,
+        (int) radius, spawnAmount);
+    if (safeLocations.isEmpty()) {
+      return;
+    }
+    Random random = ThreadLocalRandom.current();
+    for (int i = 0; i < spawnAmount; i++) {
+      Location spawnLocation = safeLocations.get(random.nextInt(safeLocations.size()));
       LivingEntity entity = gtMob.spawn(spawnLocation, this);
       spawnedMobs.add(entity.getUniqueId());
     }

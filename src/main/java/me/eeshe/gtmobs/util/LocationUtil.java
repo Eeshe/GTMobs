@@ -1,17 +1,47 @@
 package me.eeshe.gtmobs.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 public class LocationUtil {
+
+  public static List<Location> computeEmptyLocationsForSpawn(Location center, int radius, int amount) {
+    List<Location> validLocations = new ArrayList<>();
+    if (radius == 0) {
+      validLocations.add(center);
+      return validLocations;
+    }
+    World world = center.getWorld();
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+
+    for (int i = 0; i < 200; i++) {
+      int x = random.nextInt(center.getBlockX() - radius, center.getBlockX() + radius);
+      int y = random.nextInt(center.getBlockY() - radius, center.getBlockY() + radius);
+      int z = random.nextInt(center.getBlockZ() - radius, center.getBlockZ() + radius);
+
+      Block blockBelow = world.getBlockAt(x, y - 1, z);
+      Block blockAt = world.getBlockAt(x, y, z);
+      Block blockBelow3 = world.getBlockAt(x, y - 3, z);
+
+      if (blockBelow.getType() == Material.AIR && blockAt.getType() == Material.AIR
+          && blockBelow3.getType() != Material.AIR) {
+        validLocations.add(new Location(world, x, y, z));
+        if (validLocations.size() >= amount) {
+          break;
+        }
+      }
+    }
+    return validLocations;
+  }
 
   /**
    * Generates a random location around the passed center with the passed offset.
