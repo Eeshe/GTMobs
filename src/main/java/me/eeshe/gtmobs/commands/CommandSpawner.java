@@ -111,7 +111,8 @@ class CommandSpawnerInfo extends PluginCommand {
         Map.entry("%maximum%", StringUtil.formatNumber(spawner.getAmount().getMax())),
         Map.entry("%limit%", StringUtil.formatNumber(spawner.getLimit())),
         Map.entry("%interval%", StringUtil.formatSeconds(spawner.getFrequencyTicks() / 20)),
-        Map.entry("%radius%", StringUtil.formatNumber(spawner.getRadius()))));
+        Map.entry("%spawn_radius%", StringUtil.formatNumber(spawner.getSpawnRadius())),
+        Map.entry("%trigger_radius%", StringUtil.formatNumber(spawner.getTriggerRadius()))));
   }
 }
 
@@ -347,7 +348,8 @@ class CommandSpawnerSet extends PluginCommand {
           new CommandSpawnerSetMax(plugin, this),
           new CommandSpawnerSetLimit(plugin, this),
           new CommandSpawnerSetInterval(plugin, this),
-          new CommandSpawnerSetRadius(plugin, this)));
+          new CommandSpawnerSetSpawnRadius(plugin, this),
+          new CommandSpawnerSetTriggerRadius(plugin, this)));
     }
     setName("set");
     setPermission("gtmobs.admin");
@@ -542,15 +544,15 @@ class CommandSpawnerSetInterval extends CommandSpawnerSet {
   }
 }
 
-class CommandSpawnerSetRadius extends CommandSpawnerSet {
+class CommandSpawnerSetSpawnRadius extends CommandSpawnerSet {
 
-  public CommandSpawnerSetRadius(GTMobs plugin, PluginCommand parentPluginCommand) {
+  public CommandSpawnerSetSpawnRadius(GTMobs plugin, PluginCommand parentPluginCommand) {
     super(plugin, parentPluginCommand);
 
-    setName("radius");
+    setName("spawnradius");
     setPermission("gtmobs.admin");
-    setInfoMessage(Message.SPAWNER_SET_RADIUS_COMMAND_INFO);
-    setUsageMessage(Message.SPAWNER_SET_RADIUS_COMMAND_USAGE);
+    setInfoMessage(Message.SPAWNER_SET_SPAWN_RADIUS_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_SET_SPAWN_RADIUS_COMMAND_USAGE);
     setArgumentAmount(1);
     setUniversalCommand(true);
   }
@@ -565,9 +567,39 @@ class CommandSpawnerSetRadius extends CommandSpawnerSet {
       Message.AMOUNT_MUST_BE_ZERO_OR_HIGHER.sendError(sender);
       return;
     }
-    spawner.setRadius(radius);
-    Message.SPAWNER_SET_RADIUS_COMMAND_SUCCESS.sendSuccess(sender, Map.ofEntries(
+    spawner.setSpawnRadius(radius);
+    Message.SPAWNER_SET_SPAWN_RADIUS_COMMAND_SUCCESS.sendSuccess(sender, Map.ofEntries(
         Map.entry("%spawner%", spawner.getId()),
-        Map.entry("%radius%", StringUtil.formatNumber(radius))));
+        Map.entry("%spawn_radius%", StringUtil.formatNumber(radius))));
+  }
+}
+
+class CommandSpawnerSetTriggerRadius extends CommandSpawnerSet {
+
+  public CommandSpawnerSetTriggerRadius(GTMobs plugin, PluginCommand parentPluginCommand) {
+    super(plugin, parentPluginCommand);
+
+    setName("triggerradius");
+    setPermission("gtmobs.admin");
+    setInfoMessage(Message.SPAWNER_SET_TRIGGER_RADIUS_COMMAND_INFO);
+    setUsageMessage(Message.SPAWNER_SET_TRIGGER_RADIUS_COMMAND_USAGE);
+    setArgumentAmount(1);
+    setUniversalCommand(true);
+  }
+
+  @Override
+  public void execute(CommandSender sender, String[] args, Spawner spawner) {
+    Double radius = StringUtil.parseDouble(sender, args[0]);
+    if (radius == null) {
+      return;
+    }
+    if (radius < 0) {
+      Message.AMOUNT_MUST_BE_ZERO_OR_HIGHER.sendError(sender);
+      return;
+    }
+    spawner.setTriggerRadius(radius);
+    Message.SPAWNER_SET_TRIGGER_RADIUS_COMMAND_SUCCESS.sendSuccess(sender, Map.ofEntries(
+        Map.entry("%spawner%", spawner.getId()),
+        Map.entry("%trigger_radius%", StringUtil.formatNumber(radius))));
   }
 }

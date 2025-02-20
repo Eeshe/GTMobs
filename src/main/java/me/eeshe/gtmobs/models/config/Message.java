@@ -76,7 +76,8 @@ public enum Message {
       "&eAmount: &b%minimum%-%maximum%\n" +
       "&eLimit: &b%limit%\n" +
       "&eInterval: &b%interval%\n" +
-      "&eRadius: &b%radius%"),
+      "&eSpawn Radius: &b%spawn_radius%\n" +
+      "&eTrigger Radius: &b%trigger_radius%"),
 
   SPAWNER_COPY_COMMAND_INFO("spawner-copy-command-info",
       "Copies the source spawner's configurations to a new spawner."),
@@ -132,12 +133,20 @@ public enum Message {
   SPAWNER_SET_INTERVAL_COMMAND_SUCCESS("spawner-set-interval-command-success",
       "&aSuccessfully set &l%spawner%'s&a spawn interval to &l%interval%&a."),
 
-  SPAWNER_SET_RADIUS_COMMAND_INFO("spawner-set-radius-command-info", "Sets the spawn radius of the spawner"),
-  SPAWNER_SET_RADIUS_COMMAND_USAGE("spawner-set-radius-command-usage", "/gtmobs spawner set <Spawner> radius <Radius>"),
-  SPAWNER_SET_RADIUS_COMMAND_SUCCESS("spawner-set-radius-command-success",
-      "&aSuccessfully set &l%spawner%'s&a spawn radius to &l%radius%&a."),
+  SPAWNER_SET_SPAWN_RADIUS_COMMAND_INFO("spawner-set-spawn-radius-command-info",
+      "Sets the spawn radius of the spawner"),
+  SPAWNER_SET_SPAWN_RADIUS_COMMAND_USAGE("spawner-set-spawn-radius-command-usage",
+      "/gtmobs spawner set <Spawner> spawnradius <Radius>"),
+  SPAWNER_SET_SPAWN_RADIUS_COMMAND_SUCCESS("spawner-set-spawn-radius-command-success",
+      "&aSuccessfully set &l%spawner%'s&a spawn radius to &l%spawn_radius%&a."),
 
-  ;
+  SPAWNER_SET_TRIGGER_RADIUS_COMMAND_INFO("spawner-set-trigger-radius-command-info",
+      "Sets the trigger radius of the spawner"),
+  SPAWNER_SET_TRIGGER_RADIUS_COMMAND_USAGE("spawner-set-trigger-radius-command-usage",
+      "/gtmobs spawner set <Spawner> triggerradius <Radius>"),
+  SPAWNER_SET_TRIGGER_RADIUS_COMMAND_SUCCESS("spawner-set-trigger-radius-command-success",
+      "&aSuccessfully set &l%spawner%'s&a trigger radius to &l%trigger_radius%&a."),
+      ;
 
   private final static ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "messages.yml");
 

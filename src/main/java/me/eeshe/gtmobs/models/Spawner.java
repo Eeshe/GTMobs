@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import me.eeshe.gtmobs.GTMobs;
@@ -25,7 +26,8 @@ public class Spawner {
   private String mobId;
   private IntRange amount;
   private long frequencyTicks;
-  private double radius;
+  private double spawnRadius;
+  private double triggerRadius;
   private int limit;
 
   private final Set<UUID> spawnedMobs = new HashSet<>();
@@ -37,7 +39,8 @@ public class Spawner {
     this.mobId = null;
     this.amount = new IntRange(1, 1);
     this.frequencyTicks = 100L;
-    this.radius = 5;
+    this.spawnRadius = 5;
+    this.triggerRadius = 10;
     this.limit = 8;
   }
 
@@ -47,18 +50,20 @@ public class Spawner {
     this.mobId = spawner.getMobId();
     this.amount = spawner.getAmount();
     this.frequencyTicks = spawner.getFrequencyTicks();
-    this.radius = spawner.getRadius();
+    this.spawnRadius = spawner.getSpawnRadius();
+    this.triggerRadius = spawner.getTriggerRadius();
     this.limit = spawner.getLimit();
   }
 
-  public Spawner(String id, Location location, String mobId, IntRange amount, long frequencyTicks, double radius,
-      int limit) {
+  public Spawner(String id, Location location, String mobId, IntRange amount, long frequencyTicks,
+      double spawnRadius, double triggerRadius, int limit) {
     this.id = id;
     this.location = location;
     this.mobId = mobId;
     this.amount = amount;
     this.frequencyTicks = frequencyTicks;
-    this.radius = radius;
+    this.spawnRadius = spawnRadius;
+    this.triggerRadius = triggerRadius;
     this.limit = limit;
   }
 
@@ -157,7 +162,15 @@ public class Spawner {
    * @return Whether mobs can be spawned
    */
   public boolean canSpawn() {
-    return spawnedMobs.size() < limit;
+    boolean hasNearPlayers = false;
+    for (Entity entity : location.getWorld().getNearbyEntities(location, triggerRadius, triggerRadius, triggerRadius)) {
+      if (!(entity instanceof Player)) {
+        continue;
+      }
+      hasNearPlayers = true;
+      break;
+    }
+    return hasNearPlayers && spawnedMobs.size() < limit;
   }
 
   /**
@@ -171,7 +184,7 @@ public class Spawner {
     }
     int spawnAmount = Math.min(amount.generateRandom(), limit - spawnedMobs.size());
     List<Location> safeLocations = LocationUtil.computeLocationsForSpawn(location,
-        (int) radius, spawnAmount);
+        (int) spawnRadius, spawnAmount);
     if (safeLocations.isEmpty()) {
       return;
     }
@@ -253,12 +266,21 @@ public class Spawner {
     saveData();
   }
 
-  public double getRadius() {
-    return radius;
+  public double getSpawnRadius() {
+    return spawnRadius;
   }
 
-  public void setRadius(double radius) {
-    this.radius = radius;
+  public void setSpawnRadius(double radius) {
+    this.spawnRadius = radius;
+    saveData();
+  }
+
+  public double getTriggerRadius() {
+    return triggerRadius;
+  }
+
+  public void setTriggerRadius(double triggerRadius) {
+    this.triggerRadius = triggerRadius;
     saveData();
   }
 

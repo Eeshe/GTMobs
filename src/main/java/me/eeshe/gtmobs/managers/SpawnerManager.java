@@ -65,10 +65,11 @@ public class SpawnerManager extends DataManager {
     String mobId = spawnerData.getString("mob-id");
     IntRange amount = ConfigUtil.fetchIntRange(spawnerData, "amount");
     long frequencyTicks = spawnerData.getLong("frequency-ticks");
-    double radius = spawnerData.getDouble("radius");
+    double spawnRadius = spawnerData.getDouble("spawn-radius");
+    double triggerRadius = spawnerData.getDouble("trigger-radius");
     int limit = spawnerData.getInt("limit");
 
-    return new Spawner(id, location, mobId, amount, frequencyTicks, radius, limit);
+    return new Spawner(id, location, mobId, amount, frequencyTicks, spawnRadius, triggerRadius, limit);
   }
 
   @Override
@@ -92,7 +93,8 @@ public class SpawnerManager extends DataManager {
     spawnerData.set("mob-id", spawner.getMobId());
     ConfigUtil.writeIntRange(spawnerData, "amount", spawner.getAmount());
     spawnerData.set("frequency-ticks", spawner.getFrequencyTicks());
-    spawnerData.set("radius", spawner.getRadius());
+    spawnerData.set("spawn-radius", spawner.getSpawnRadius());
+    spawnerData.set("trigger-radius", spawner.getTriggerRadius());
     spawnerData.set("limit", spawner.getLimit());
 
     spawnerFile.saveData();
