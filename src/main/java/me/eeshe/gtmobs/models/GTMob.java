@@ -27,6 +27,7 @@ public class GTMob {
   private final String displayName;
   private final Map<Attribute, Double> attributes;
   private final List<ConfigSound> spawnSounds;
+  private final List<ConfigParticle> spawnParticles;
   private final List<ConfigParticle> onHitParticles;
   private final List<ConfigParticle> onDeathParticles;
   private final IntRange experienceDrop;
@@ -36,15 +37,17 @@ public class GTMob {
 
   public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
       Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
-      List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
-      IntRange experienceDrop, List<MobActionChain> onHitActions,
-      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
+      List<ConfigParticle> spawnParticles, List<ConfigParticle> onHitParticles,
+      List<ConfigParticle> onDeathParticles, IntRange experienceDrop,
+      List<MobActionChain> onHitActions, List<MobActionChain> onTargetHitActions,
+      List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
     this.displayName = displayName;
     this.attributes = attributes;
     this.spawnSounds = spawnSounds;
+    this.spawnParticles = spawnParticles;
     this.onHitParticles = onHitParticles;
     this.onDeathParticles = onDeathParticles;
     this.experienceDrop = experienceDrop;
@@ -127,6 +130,10 @@ public class GTMob {
         livingEntity.setHealth(entry.getValue());
       }
     }
+    // Play spawn particles
+    for (ConfigParticle spawnParticle : spawnParticles) {
+      spawnParticle.spawn(location);
+    }
     // Play spawn sound
     for (ConfigSound spawnSound : spawnSounds) {
       spawnSound.play(location);
@@ -157,6 +164,10 @@ public class GTMob {
 
   public List<ConfigSound> getSpawnSounds() {
     return spawnSounds;
+  }
+
+  public List<ConfigParticle> getSpawnParticles() {
+    return spawnParticles;
   }
 
   public List<ConfigParticle> getOnHitParticles() {

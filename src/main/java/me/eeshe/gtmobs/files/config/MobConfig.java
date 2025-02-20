@@ -63,6 +63,7 @@ public class MobConfig extends ConfigWrapper {
             "&eGTZombie",
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
+            List.of(new ConfigParticle(Particle.VILLAGER_HAPPY, 5, 0.5, 0.5, 0.5, 0.1)),
             List.of(
                 new ConfigParticle(Particle.SLIME, 10, 1, 1, 1, 0.5)),
             List.of(
@@ -105,6 +106,7 @@ public class MobConfig extends ConfigWrapper {
             "&3GTSkeleton",
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
+            List.of(new ConfigParticle(Particle.VILLAGER_HAPPY, 5, 0.5, 0.5, 0.5, 0.1)),
             List.of(
                 new ConfigParticle(Particle.SLIME, 10, 1, 1, 1, 0.5),
                 new ConfigParticle(Particle.FLAME, 10, 1, 1, 1, 0.5)),
@@ -155,6 +157,7 @@ public class MobConfig extends ConfigWrapper {
     config.addDefault(path + ".display-name", gtMob.getDisplayName());
     ConfigUtil.writeAttributeMap(config, path + ".attributes", gtMob.getAttributes());
     writeConfigSounds(config, path + ".spawn-sounds", gtMob.getSpawnSounds());
+    ConfigUtil.writeConfigParticles(config, path + ".spawn-particles", gtMob.getSpawnParticles());
     ConfigUtil.writeConfigParticles(config, path + ".hit-particles", gtMob.getOnHitParticles());
     ConfigUtil.writeConfigParticles(config, path + ".death-particles", gtMob.getOnDeathParticles());
     ConfigUtil.writeIntRange(config, path + ".experience-drop", gtMob.getExperienceDrop());
@@ -222,6 +225,8 @@ public class MobConfig extends ConfigWrapper {
     String displayName = mobSection.getString("display-name", "");
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
     List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds", ""));
+    List<ConfigParticle> spawnParticles = ConfigUtil
+        .computeConfigParticles(mobSection.getString("spawn-particles", ""));
     List<ConfigParticle> onHitParticles = ConfigUtil.computeConfigParticles(
         mobSection.getString("hit-particles"));
     List<ConfigParticle> onDeathParticles = ConfigUtil.computeConfigParticles(
@@ -231,8 +236,9 @@ public class MobConfig extends ConfigWrapper {
     List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit", ""));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death", ""));
 
-    return new GTMob(id, entityType, isBaby, displayName, attributes, spawnSounds, onHitParticles,
-        onDeathParticles, experienceDrop, onHitActions, onTargetHitActions, onDeathActions);
+    return new GTMob(id, entityType, isBaby, displayName, attributes, spawnSounds,
+        spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
+        onHitActions, onTargetHitActions, onDeathActions);
   }
 
   /**
