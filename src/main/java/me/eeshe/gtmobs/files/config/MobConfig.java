@@ -24,6 +24,7 @@ import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
 import me.eeshe.gtmobs.models.mobactions.ConsoleCommandMobAction;
 import me.eeshe.gtmobs.models.mobactions.EffectMobAction;
+import me.eeshe.gtmobs.models.mobactions.MessageMobAction;
 import me.eeshe.gtmobs.models.mobactions.MobAction;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 import me.eeshe.gtmobs.models.mobactions.MobActionTarget;
@@ -360,6 +361,9 @@ public class MobConfig extends ConfigWrapper {
         case EFFECT:
           mobAction = computeEffectMobAction(params);
           break;
+        case MESSAGE:
+          mobAction = computeMessageMobAction(params);
+          break;
         case PARTICLE:
           mobAction = computeParticleMobAction(params);
           break;
@@ -467,6 +471,39 @@ public class MobConfig extends ConfigWrapper {
         potionEffectType,
         durationTicks,
         amplifier - 1));
+  }
+
+  /**
+   * Computes a MessageMobAction from the passed parameters
+   *
+   * @param params Parameters to compute
+   * @return Computed MessageMobAction
+   */
+  private MessageMobAction computeMessageMobAction(String[] params) {
+    if (params.length < 3) {
+      LogUtil.sendWarnLog("Not enough parameters provided for MessageMobAction. Got: " +
+          Arrays.toString(params));
+      return null;
+    }
+    String message = params[0].replace("[", "").replace("]", "").trim();
+    double radius;
+    try {
+      radius = Double.parseDouble(params[1]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid amount '" + params[1] + "' from parameters: " +
+          Arrays.toString(params));
+      return null;
+    }
+    long delayTicks = 0;
+    if (params.length > 2) {
+      try {
+        delayTicks = Long.parseLong(params[2]);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Invalid delay ticks '" + params[2] + "' from parameters: " +
+            Arrays.toString(params) + ". Using 0.");
+      }
+    }
+    return new MessageMobAction(message, radius, delayTicks);
   }
 
   /**

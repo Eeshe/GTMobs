@@ -3,6 +3,7 @@ package me.eeshe.gtmobs.models.mobactions;
 public enum MobActionType {
   CONSOLE_COMMAND,
   EFFECT,
+  MESSAGE,
   PARTICLE,
   SOUND,
   SPAWN,

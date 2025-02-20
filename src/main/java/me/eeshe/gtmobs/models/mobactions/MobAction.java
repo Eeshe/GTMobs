@@ -48,6 +48,12 @@ public abstract class MobAction {
       return MobActionType.CONSOLE_COMMAND;
     } else if (this instanceof EffectMobAction) {
       return MobActionType.EFFECT;
+    } else if (this instanceof MessageMobAction) {
+      return MobActionType.MESSAGE;
+    } else if (this instanceof ParticleMobAction) {
+      return MobActionType.PARTICLE;
+    } else if (this instanceof SoundMobAction) {
+      return MobActionType.SOUND;
     } else if (this instanceof SpawnMobAction) {
       return MobActionType.SPAWN;
     } else if (this instanceof SuicideMobAction) {
