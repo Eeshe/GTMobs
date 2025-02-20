@@ -170,7 +170,7 @@ public class Spawner {
       return;
     }
     int spawnAmount = Math.min(amount.generateRandom(), limit - spawnedMobs.size());
-    List<Location> safeLocations = LocationUtil.computeEmptyLocationsForSpawn(location,
+    List<Location> safeLocations = LocationUtil.computeLocationsForSpawn(location,
         (int) radius, spawnAmount);
     if (safeLocations.isEmpty()) {
       return;

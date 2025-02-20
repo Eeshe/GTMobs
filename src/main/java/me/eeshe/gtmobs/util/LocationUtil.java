@@ -14,31 +14,21 @@ import org.bukkit.util.Vector;
 
 public class LocationUtil {
 
-  public static List<Location> computeEmptyLocationsForSpawn(Location center, int radius, int amount) {
+  public static List<Location> computeLocationsForSpawn(Location center, int radius, int amount) {
     List<Location> validLocations = new ArrayList<>();
     if (radius == 0) {
       validLocations.add(center);
       return validLocations;
     }
-    World world = center.getWorld();
-    ThreadLocalRandom random = ThreadLocalRandom.current();
-
-    for (int i = 0; i < 200; i++) {
-      int x = random.nextInt(center.getBlockX() - radius, center.getBlockX() + radius);
-      int y = random.nextInt(center.getBlockY() - radius, center.getBlockY() + radius);
-      int z = random.nextInt(center.getBlockZ() - radius, center.getBlockZ() + radius);
-
-      Block blockBelow = world.getBlockAt(x, y - 1, z);
-      Block blockAt = world.getBlockAt(x, y, z);
-      Block blockBelow3 = world.getBlockAt(x, y - 3, z);
-
-      if (blockBelow.getType() == Material.AIR && blockAt.getType() == Material.AIR
-          && blockBelow3.getType() != Material.AIR) {
-        validLocations.add(new Location(world, x, y, z));
-        if (validLocations.size() >= amount) {
-          break;
-        }
+    for (int attempt = 0; attempt < 200; attempt++) {
+      if (validLocations.size() >= amount) {
+        break;
       }
+      Location location = generateRandomLocationOffset(center, radius, true, true);
+      if (location == null) {
+        continue;
+      }
+      validLocations.add(location);
     }
     return validLocations;
   }
@@ -52,10 +42,10 @@ public class LocationUtil {
    * @param safe    Whether the random location needs to be safe.
    * @return Random location with the passed offset.
    */
-  public static Location generateRandomLocationOffset(Location center, double offset, boolean randomY, boolean safe) {
+  public static Location generateRandomLocationOffset(Location center, int offset, boolean randomY, boolean safe) {
     ThreadLocalRandom random = ThreadLocalRandom.current();
-    double xOffset = random.nextDouble(-offset, offset);
-    double zOffset = random.nextDouble(-offset, offset);
+    int xOffset = random.nextInt(-offset, offset);
+    int zOffset = random.nextInt(-offset, offset);
     Location location = center.clone();
     if (randomY) {
       location.add(0, random.nextDouble(-offset, offset), 0);
@@ -192,17 +182,36 @@ public class LocationUtil {
   /**
    * Checks if the passed location is a safe location.
    *
-   * @param location Location that will be checked.
+   * @param legsLocation Location that will be checked.
    * @return True if the passed location is a safe location.
    */
-  public static boolean isSafeLocation(Location location) {
-    if (location.getBlock().getType().isSolid())
+  public static boolean isSafeLocation(Location legsLocation) {
+    Block legsBlock = legsLocation.getBlock();
+    if (!isSafeBodyBlock(legsBlock)) {
       return false;
-
-    Block locationBlock = location.getBlock();
-    if (locationBlock.getRelative(BlockFace.DOWN).isEmpty())
+    }
+    if (!isSafeGroundBlock(legsBlock.getRelative(BlockFace.DOWN))) {
       return false;
+    }
+    return isSafeBodyBlock(legsBlock.getRelative(BlockFace.UP));
+  }
 
-    return locationBlock.getRelative(BlockFace.UP).isEmpty();
+  /**
+   * Checks if the passed block is safe to be in a player body location.
+   * Ex. Head or legs
+   *
+   * @param block Block to check
+   * @return True if the block is safe
+   */
+  private static boolean isSafeBodyBlock(Block block) {
+    Material material = block.getType();
+
+    return !material.isSolid() && !material.name().contains("LAVA") && !material.name().contains("WATER");
+  }
+
+  private static boolean isSafeGroundBlock(Block block) {
+    Material material = block.getType();
+
+    return material.isSolid() && !material.name().contains("LAVA") && !material.name().contains("WATER");
   }
 }
