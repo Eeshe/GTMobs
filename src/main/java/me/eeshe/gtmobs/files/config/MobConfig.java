@@ -21,8 +21,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.google.common.collect.ArrayListMultimap;
+
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.GTMob;
+import me.eeshe.gtmobs.models.MobDisguise;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
@@ -38,6 +41,7 @@ import me.eeshe.gtmobs.models.mobactions.SoundMobAction;
 import me.eeshe.gtmobs.models.mobactions.SpawnMobAction;
 import me.eeshe.gtmobs.models.mobactions.SuicideMobAction;
 import me.eeshe.gtmobs.util.ConfigUtil;
+import me.eeshe.gtmobs.util.ItemUtil;
 import me.eeshe.gtmobs.util.LogUtil;
 
 public class MobConfig extends ConfigWrapper {
@@ -65,6 +69,19 @@ public class MobConfig extends ConfigWrapper {
             EntityType.ZOMBIE,
             false,
             "&eGTZombie",
+            new MobDisguise(
+                true,
+                List.of(
+                    "Skin1",
+                    "Skin2"),
+                ItemUtil.generateItemStack(
+                    Material.FEATHER,
+                    "drone_model",
+                    new ArrayList<>(),
+                    true,
+                    new HashMap<>(),
+                    ArrayListMultimap.create(),
+                    null)),
             new HashMap<>(),
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
@@ -109,6 +126,19 @@ public class MobConfig extends ConfigWrapper {
             EntityType.SKELETON,
             false,
             "&3GTSkeleton",
+            new MobDisguise(
+                true,
+                List.of(
+                    "Skin1",
+                    "Skin2"),
+                ItemUtil.generateItemStack(
+                    Material.FEATHER,
+                    "drone_model",
+                    new ArrayList<>(),
+                    true,
+                    new HashMap<>(),
+                    ArrayListMultimap.create(),
+                    null)),
             new HashMap<>(),
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
@@ -161,8 +191,9 @@ public class MobConfig extends ConfigWrapper {
     }
     config.addDefault(path + ".entity-type", gtMob.getEntityType().name());
     config.addDefault(path + ".display-name", gtMob.getDisplayName());
+    writeMobDisguise(path + ".disguise", gtMob.getDisguise());
     ConfigUtil.writeAttributeMap(config, path + ".attributes", gtMob.getAttributes());
-    writeConfigSounds(config, path + ".spawn-sounds", gtMob.getSpawnSounds());
+    writeConfigSounds(path + ".spawn-sounds", gtMob.getSpawnSounds());
     ConfigUtil.writeConfigParticles(config, path + ".spawn-particles", gtMob.getSpawnParticles());
     ConfigUtil.writeConfigParticles(config, path + ".hit-particles", gtMob.getOnHitParticles());
     ConfigUtil.writeConfigParticles(config, path + ".death-particles", gtMob.getOnDeathParticles());
@@ -173,14 +204,30 @@ public class MobConfig extends ConfigWrapper {
   }
 
   /**
+   * Writes the passed MobDisguise to the config file
+   *
+   * @param path        Path to write the disguise in
+   * @param mobDisguise Disguise to write
+   */
+  private void writeMobDisguise(String path, MobDisguise mobDisguise) {
+    FileConfiguration config = getConfig();
+    if (config.contains(path)) {
+      return;
+    }
+    config.addDefault(path + ".enable", mobDisguise.isEnabled());
+    config.addDefault(path + ".skins", mobDisguise.getSkinNames());
+    ConfigUtil.writeConfigItemStack(config, path + ".item", mobDisguise.getSkinItem());
+  }
+
+  /**
    * Writes the passed ConfigSounds to the passed config file
    *
    * @param config       Config file to write
    * @param path         Path to write in
    * @param configSounds ConfigSounds to write
    */
-  private void writeConfigSounds(FileConfiguration config, String path, List<ConfigSound> configSounds) {
-    config.addDefault(path, String.join(",", configSounds.stream().map(ConfigSound::toString)
+  private void writeConfigSounds(String path, List<ConfigSound> configSounds) {
+    getConfig().addDefault(path, String.join(",", configSounds.stream().map(ConfigSound::toString)
         .collect(Collectors.toList())));
   }
 
@@ -229,6 +276,7 @@ public class MobConfig extends ConfigWrapper {
     }
     boolean isBaby = mobSection.getBoolean("baby");
     String displayName = mobSection.getString("display-name", "");
+    MobDisguise disguise = fetchMobDisguise(id + ".disguise");
     Map<EquipmentSlot, ItemStack> equipment = fetchEquipment(id);
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
     List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds"));
@@ -243,9 +291,27 @@ public class MobConfig extends ConfigWrapper {
     List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit"));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death"));
 
-    return new GTMob(id, entityType, isBaby, displayName, equipment, attributes,
+    return new GTMob(id, entityType, isBaby, displayName, disguise, equipment, attributes,
         spawnSounds, spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
         onHitActions, onTargetHitActions, onDeathActions);
+  }
+
+  /**
+   * Fetches the MobDisguise configured in the passed path
+   *
+   * @param path Path to search in
+   * @return Configured MobDisguise
+   */
+  private MobDisguise fetchMobDisguise(String path) {
+    ConfigurationSection disguiseSection = getConfig().getConfigurationSection(path);
+    if (disguiseSection == null) {
+      return null;
+    }
+    boolean enabled = disguiseSection.getBoolean("enabled");
+    List<String> skinNames = disguiseSection.getStringList("skins");
+    ItemStack skinItem = ConfigUtil.fetchConfigItemStack(getConfig(), path + ".item");
+
+    return new MobDisguise(enabled, skinNames, skinItem);
   }
 
   /**

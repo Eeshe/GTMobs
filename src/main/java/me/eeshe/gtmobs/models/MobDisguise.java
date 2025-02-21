@@ -1,16 +1,18 @@
 package me.eeshe.gtmobs.models;
 
+import java.util.List;
+
 import org.bukkit.inventory.ItemStack;
 
 public class MobDisguise {
 
   private final boolean enabled;
-  private final String skinName;
+  private final List<String> skinNames;
   private final ItemStack skinItem;
 
-  public MobDisguise(boolean enabled, String skinName, ItemStack skinItem) {
+  public MobDisguise(boolean enabled, List<String> skinNames, ItemStack skinItem) {
     this.enabled = enabled;
-    this.skinName = skinName;
+    this.skinNames = skinNames;
     this.skinItem = skinItem;
   }
 
@@ -18,8 +20,8 @@ public class MobDisguise {
     return enabled;
   }
 
-  public String getSkinName() {
-    return skinName;
+  public List<String> getSkinNames() {
+    return skinNames;
   }
 
   public ItemStack getSkinItem() {
