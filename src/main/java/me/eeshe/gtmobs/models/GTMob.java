@@ -11,6 +11,9 @@ import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Zombie;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
@@ -25,6 +28,7 @@ public class GTMob {
   private final EntityType entityType;
   private final boolean isBaby;
   private final String displayName;
+  private final Map<EquipmentSlot, ItemStack> equipment;
   private final Map<Attribute, Double> attributes;
   private final List<ConfigSound> spawnSounds;
   private final List<ConfigParticle> spawnParticles;
@@ -36,15 +40,16 @@ public class GTMob {
   private final List<MobActionChain> onDeathActions;
 
   public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
-      Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
-      List<ConfigParticle> spawnParticles, List<ConfigParticle> onHitParticles,
-      List<ConfigParticle> onDeathParticles, IntRange experienceDrop,
-      List<MobActionChain> onHitActions, List<MobActionChain> onTargetHitActions,
-      List<MobActionChain> onDeathActions) {
+      Map<EquipmentSlot, ItemStack> equipment, Map<Attribute, Double> attributes,
+      List<ConfigSound> spawnSounds, List<ConfigParticle> spawnParticles,
+      List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
+      IntRange experienceDrop, List<MobActionChain> onHitActions,
+      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
     this.displayName = displayName;
+    this.equipment = equipment;
     this.attributes = attributes;
     this.spawnSounds = spawnSounds;
     this.spawnParticles = spawnParticles;
@@ -119,6 +124,23 @@ public class GTMob {
       }
     }
 
+    // Set equipment
+    EntityEquipment entityEquipment = livingEntity.getEquipment();
+    if (entityEquipment != null) {
+      entityEquipment.setHelmet(equipment.getOrDefault(EquipmentSlot.HEAD, null));
+      entityEquipment.setHelmetDropChance(0);
+      entityEquipment.setChestplate(equipment.getOrDefault(EquipmentSlot.CHEST, null));
+      entityEquipment.setChestplateDropChance(100);
+      entityEquipment.setLeggings(equipment.getOrDefault(EquipmentSlot.LEGS, null));
+      entityEquipment.setLeggingsDropChance(100);
+      entityEquipment.setBoots(equipment.getOrDefault(EquipmentSlot.FEET, null));
+      entityEquipment.setBootsDropChance(100);
+      entityEquipment.setItemInMainHand(equipment.getOrDefault(EquipmentSlot.HAND, null));
+      entityEquipment.setItemInMainHandDropChance(100);
+      entityEquipment.setItemInOffHand(equipment.getOrDefault(EquipmentSlot.OFF_HAND, null));
+      entityEquipment.setItemInOffHandDropChance(0);
+    }
+
     // Apply attributes
     for (Entry<Attribute, Double> entry : attributes.entrySet()) {
       AttributeInstance attributeInstance = livingEntity.getAttribute(entry.getKey());
@@ -156,6 +178,10 @@ public class GTMob {
 
   public String getDisplayName() {
     return displayName;
+  }
+
+  public Map<EquipmentSlot, ItemStack> getEquipment() {
+    return equipment;
   }
 
   public Map<Attribute, Double> getAttributes() {

@@ -1,25 +1,26 @@
 package me.eeshe.gtmobs.files.config;
 
-import me.eeshe.gtmobs.util.LogUtil;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.yaml.snakeyaml.Yaml;
+
+import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.util.LogUtil;
+
 public class ConfigWrapper {
-  private final Plugin plugin;
+  private final GTMobs plugin;
   private final String folderName;
   private final String fileName;
   private FileConfiguration config;
   private File configFile;
   private boolean hasSyntaxError;
 
-  public ConfigWrapper(Plugin plugin, String folderName, String fileName) {
+  public ConfigWrapper(GTMobs plugin, String folderName, String fileName) {
     this.plugin = plugin;
     this.folderName = folderName;
     this.fileName = fileName;
@@ -77,5 +78,9 @@ public class ConfigWrapper {
 
   public void writeDefaults() {
 
+  }
+
+  public GTMobs getPlugin() {
+    return plugin;
   }
 }

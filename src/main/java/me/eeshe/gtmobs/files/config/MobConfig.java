@@ -2,18 +2,22 @@ package me.eeshe.gtmobs.files.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -61,6 +65,7 @@ public class MobConfig extends ConfigWrapper {
             EntityType.ZOMBIE,
             false,
             "&eGTZombie",
+            new HashMap<>(),
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(new ConfigParticle(Particle.VILLAGER_HAPPY, 5, 0.5, 0.5, 0.5, 0.1)),
@@ -104,6 +109,7 @@ public class MobConfig extends ConfigWrapper {
             EntityType.SKELETON,
             false,
             "&3GTSkeleton",
+            new HashMap<>(),
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(new ConfigParticle(Particle.VILLAGER_HAPPY, 5, 0.5, 0.5, 0.5, 0.1)),
@@ -223,22 +229,68 @@ public class MobConfig extends ConfigWrapper {
     }
     boolean isBaby = mobSection.getBoolean("baby");
     String displayName = mobSection.getString("display-name", "");
+    Map<EquipmentSlot, ItemStack> equipment = fetchEquipment(id);
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
-    List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds", ""));
+    List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds"));
     List<ConfigParticle> spawnParticles = ConfigUtil
-        .computeConfigParticles(mobSection.getString("spawn-particles", ""));
+        .computeConfigParticles(mobSection.getString("spawn-particles"));
     List<ConfigParticle> onHitParticles = ConfigUtil.computeConfigParticles(
         mobSection.getString("hit-particles"));
     List<ConfigParticle> onDeathParticles = ConfigUtil.computeConfigParticles(
         mobSection.getString("death-particles"));
     IntRange experienceDrop = ConfigUtil.fetchIntRange(config, id + ".experience-drop");
-    List<MobActionChain> onHitActions = computeMobActionChains(mobSection.getString("events.hit", ""));
-    List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit", ""));
-    List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death", ""));
+    List<MobActionChain> onHitActions = computeMobActionChains(mobSection.getString("events.hit"));
+    List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit"));
+    List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death"));
 
-    return new GTMob(id, entityType, isBaby, displayName, attributes, spawnSounds,
-        spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
+    return new GTMob(id, entityType, isBaby, displayName, equipment, attributes,
+        spawnSounds, spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
         onHitActions, onTargetHitActions, onDeathActions);
+  }
+
+  /**
+   * Fetches the configured equipment for the passed mob
+   *
+   * @param mobId ID of the mob whose equipment will be fetched
+   * @return Configured equipment for the GTMob
+   */
+  private Map<EquipmentSlot, ItemStack> fetchEquipment(String mobId) {
+    Map<EquipmentSlot, ItemStack> equipment = new HashMap<>();
+    ConfigurationSection equipmentSection = getConfig().getConfigurationSection(mobId + ".equipment");
+    if (equipmentSection == null) {
+      return equipment;
+    }
+    for (String equipmentSlotName : equipmentSection.getKeys(false)) {
+      EquipmentSlot equipmentSlot;
+      try {
+        equipmentSlot = EquipmentSlot.valueOf(equipmentSlotName);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Unknown EquipmentSlot '" + equipmentSlotName + "' configured for '" + mobId + "'.");
+        continue;
+      }
+      ItemStack item = fetchItemStack(equipmentSection.getString(equipmentSlotName));
+      if (item == null) {
+        continue;
+      }
+      equipment.put(equipmentSlot, item);
+    }
+    return equipment;
+  }
+
+  /**
+   * Fetches the ItemStack corresponding to the passed ID.
+   * If the ID is a vanilla item, it returns the vanilla item. Otherwise, it
+   * fetches a custom item from the items.yml
+   *
+   * @param itemId Item to fetch
+   * @return Fetched item
+   */
+  private ItemStack fetchItemStack(String itemId) {
+    Material material = Material.matchMaterial(itemId);
+    if (material != null) {
+      return new ItemStack(material);
+    }
+    return getPlugin().getItemConfig().fetchItem(itemId);
   }
 
   /**
@@ -249,6 +301,9 @@ public class MobConfig extends ConfigWrapper {
    */
   private List<ConfigSound> computeConfigSounds(String configSoundChainString) {
     List<ConfigSound> configSounds = new ArrayList<>();
+    if (configSoundChainString == null) {
+      return configSounds;
+    }
     String[] configParticleStrings = configSoundChainString.split(",");
     if (configParticleStrings.length == 0) {
       ConfigSound configSound = computeConfigSound(configSoundChainString);
@@ -320,6 +375,9 @@ public class MobConfig extends ConfigWrapper {
    */
   private List<MobActionChain> computeMobActionChains(String mobActionChainString) {
     List<MobActionChain> mobActionChains = new ArrayList<>();
+    if (mobActionChainString == null) {
+      return mobActionChains;
+    }
     // This list will store the MobActions as they are fetched and will then be
     // added to a MobActionChain and be cleared
     List<MobAction> mobActions = new ArrayList<>();
