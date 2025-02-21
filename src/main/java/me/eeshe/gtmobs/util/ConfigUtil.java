@@ -6,11 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -18,6 +20,10 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
+import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.config.ConfigExplosion;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.ConfigSound;
@@ -28,9 +34,6 @@ public class ConfigUtil {
   public static void writeConfigItemStack(FileConfiguration config, String path, ItemStack item) {
     if (item == null)
       return;
-    if (config.contains(path))
-      return;
-
     config.set(path + ".material", item.getType().name());
     config.set(path + ".amount", item.getAmount());
 
@@ -50,9 +53,10 @@ public class ConfigUtil {
     if (lore != null) {
       config.set(path + ".lore", lore);
     }
+
     if (!meta.getItemFlags().isEmpty()) {
-      config.set(path + ".item-flags", meta.getItemFlags().stream().map(ItemFlag::name)
-          .collect(Collectors.toList()));
+      config.set(path + ".item-flags", meta.getItemFlags().stream()
+          .map(ItemFlag::name).collect(Collectors.toList()));
     }
   }
 
@@ -71,12 +75,14 @@ public class ConfigUtil {
     String displayName = itemSection.getString("name");
     List<String> lore = itemSection.getStringList("lore");
     Map<Enchantment, Integer> enchantments = fetchEnchantments(config, path + ".enchantments");
+    Multimap<Attribute, AttributeModifier> attributes = fetchAttributes(config, path + ".attributes");
     ItemFlag[] itemFlags = fetchItemFlags(config, path + ".item-flags");
 
     ItemStack item = new ItemStack(material, amount);
     ItemMeta meta = item.getItemMeta();
-    if (meta == null)
+    if (meta == null) {
       return item;
+    }
     if (displayName != null) {
       meta.setDisplayName(StringUtil.formatColor(displayName));
     }
@@ -85,13 +91,24 @@ public class ConfigUtil {
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
           lore.add(0, StringUtil.formatColor("&7" + StringUtil
-              .formatEnum(entry.getKey().getName() + " " + StringUtil.parseToRoman(entry.getValue()))));
+              .getEnchantmentName(entry.getKey().getName()) + " " + StringUtil.parseToRoman(entry.getValue())));
         }
+      }
+    }
+    if (!attributes.isEmpty()) {
+      Multimap<Attribute, AttributeModifier> defaultAttributes = GTMobs.getInstance().getItemConfig()
+          .fetchDefaultAttributes(material);
+      for (Map.Entry<Attribute, AttributeModifier> entry : defaultAttributes.entries()) {
+        if (attributes.containsKey(entry.getKey()))
+          continue;
+
+        attributes.put(entry.getKey(), entry.getValue());
       }
     }
     meta.setLore(lore);
     meta.addItemFlags(itemFlags);
     item.setItemMeta(meta);
+    item = ItemUtil.applyAttributes(item, attributes);
 
     item.addUnsafeEnchantments(enchantments);
 
@@ -112,6 +129,34 @@ public class ConfigUtil {
       enchantments.put(enchantment, enchantmentSection.getInt(enchantmentName));
     }
     return enchantments;
+  }
+
+  private static Multimap<Attribute, AttributeModifier> fetchAttributes(FileConfiguration config, String path) {
+    Multimap<Attribute, AttributeModifier> attributes = ArrayListMultimap.create();
+    ConfigurationSection attributeSection = config.getConfigurationSection(path);
+    if (attributeSection == null)
+      return attributes;
+    for (String attributeName : attributeSection.getKeys(false)) {
+      Attribute attribute;
+      try {
+        attribute = Attribute.valueOf(attributeName);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Unknown attribute '" + attributeName + "' configured for '" + path + "'.");
+        continue;
+      }
+      String operationName = attributeSection.getString(attributeName + ".operation");
+      AttributeModifier.Operation operation;
+      try {
+        operation = AttributeModifier.Operation.valueOf(operationName);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Unknown operation '" + operationName + "' configured for '" + path + "'.");
+        continue;
+      }
+      double amount = attributeSection.getDouble(attributeName + ".amount");
+
+      attributes.put(attribute, new AttributeModifier(UUID.randomUUID(), attribute.name(), amount, operation));
+    }
+    return attributes;
   }
 
   private static ItemFlag[] fetchItemFlags(FileConfiguration config, String path) {
@@ -261,6 +306,9 @@ public class ConfigUtil {
    */
   public static List<ConfigParticle> computeConfigParticles(String configParticleChainString) {
     List<ConfigParticle> configParticles = new ArrayList<>();
+    if (configParticleChainString == null) {
+      return configParticles;
+    }
     String[] configParticleStrings = configParticleChainString.split(",");
     if (configParticleStrings.length == 0) {
       ConfigParticle configParticle = computeConfigParticle(configParticleChainString);

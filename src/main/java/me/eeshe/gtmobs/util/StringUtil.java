@@ -3,6 +3,7 @@ package me.eeshe.gtmobs.util;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 
@@ -41,43 +41,34 @@ public class StringUtil {
   private static final Map<String, String> ENCHANTMENT_NAMES = Map.ofEntries(
       Map.entry("aqua_affinity", "Aqua Affinity"),
       Map.entry("bane_of_arthropods", "Bane of Arthropods"),
-      Map.entry("blast_protection", "Blast Protection"),
-      Map.entry("channeling", "Channeling"),
+      Map.entry("protection_explosions", "Blast Protection"),
       Map.entry("binding_curse", "Curse of Binding"),
       Map.entry("vanishing_curse", "Curse of Vanishing"),
       Map.entry("depth_strider", "Depth Strider"),
-      Map.entry("efficiency", "Efficiency"),
-      Map.entry("feather_falling", "Feather Falling"),
+      Map.entry("dig_speed", "Efficiency"),
+      Map.entry("fall_protection", "Feather Falling"),
       Map.entry("fire_aspect", "Fire Aspect"),
-      Map.entry("fire_protection", "Fire Protection"),
-      Map.entry("flame", "Flame"),
-      Map.entry("fortune", "Fortune"),
+      Map.entry("protection_fire", "Fire Protection"),
+      Map.entry("arrow_fire", "Flame"),
+      Map.entry("loot_bonus_blocks", "Fortune"),
       Map.entry("frost_walker", "Frost Walker"),
-      Map.entry("impaling", "Impaling"),
-      Map.entry("infinity", "Infinity"),
+      Map.entry("arrow_infinite", "Infinity"),
       Map.entry("knockback", "Knockback"),
-      Map.entry("looting", "Looting"),
-      Map.entry("loyalty", "Loyalty"),
-      Map.entry("luck_of_the_sea", "Luck of the Sea"),
+      Map.entry("loot_bonus_mobs", "Looting"),
+      Map.entry("luck", "Luck of the Sea"),
       Map.entry("lure", "Lure"),
       Map.entry("mending", "Mending"),
-      Map.entry("multishot", "Multishot"),
-      Map.entry("piercing", "Piercing"),
-      Map.entry("power", "Power"),
-      Map.entry("projectile_protection", "Projectile Protection"),
-      Map.entry("protection", "Protection"),
-      Map.entry("punch", "Punch"),
-      Map.entry("quick_charge", "Quick Charge"),
-      Map.entry("respiration", "Respiration"),
-      Map.entry("riptide", "Riptide"),
-      Map.entry("sharpness", "Sharpness"),
+      Map.entry("arrow_damage", "Power"),
+      Map.entry("protection_projectile", "Projectile Protection"),
+      Map.entry("protection_environmental", "Protection"),
+      Map.entry("arrow_knockback", "Punch"),
+      Map.entry("oxygen", "Respiration"),
+      Map.entry("damage_all", "Sharpness"),
       Map.entry("silk_touch", "Silk Touch"),
-      Map.entry("smite", "Smite"),
-      Map.entry("soul_speed", "Soul Speed"),
-      Map.entry("sweeping", "Sweeping Edge"),
-      Map.entry("swift_sneak", "Swift Sneak"),
+      Map.entry("damage_undead", "Smite"),
+      Map.entry("sweeping_edge", "Sweeping Edge"),
       Map.entry("thorns", "Thorns"),
-      Map.entry("unbreaking", "Unbreaking"));
+      Map.entry("durability", "Unbreaking"));
 
   /**
    * Translates all the color codes on the passed message and returns it back.
@@ -230,8 +221,8 @@ public class StringUtil {
     return ROMAN_NUMBERS_MAP.get(l) + parseToRoman(level - l);
   }
 
-  public static String getEnchantmentName(NamespacedKey enchantmentKey) {
-    return ENCHANTMENT_NAMES.get(enchantmentKey.getKey());
+  public static String getEnchantmentName(String enchantmentName) {
+    return ENCHANTMENT_NAMES.get(enchantmentName.toLowerCase(Locale.ROOT));
   }
 
   public static String formatItem(ItemStack item) {

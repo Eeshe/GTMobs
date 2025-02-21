@@ -15,6 +15,7 @@ import me.eeshe.gtmobs.commands.CommandRunner;
 import me.eeshe.gtmobs.commands.GTMobsCommand;
 import me.eeshe.gtmobs.commands.PluginCommand;
 import me.eeshe.gtmobs.files.config.ConfigWrapper;
+import me.eeshe.gtmobs.files.config.ItemConfig;
 import me.eeshe.gtmobs.files.config.MainConfig;
 import me.eeshe.gtmobs.files.config.MobConfig;
 import me.eeshe.gtmobs.listeners.GTMobHandler;
@@ -38,6 +39,7 @@ public class GTMobs extends JavaPlugin {
   private final List<DataManager> dataManagers = new ArrayList<>();
 
   private MainConfig mainConfig;
+  private ItemConfig itemConfig;
   private MobConfig mobConfig;
 
   private GTMobManager gtMobManager;
@@ -72,12 +74,14 @@ public class GTMobs extends JavaPlugin {
    */
   public void setupFiles() {
     this.mainConfig = new MainConfig(this);
+    this.itemConfig = new ItemConfig(this);
     this.mobConfig = new MobConfig(this);
     Message.setup();
     Sound.setup();
     Particle.setup();
     configFiles.addAll(List.of(
         mainConfig,
+        itemConfig,
         mobConfig,
         Message.getConfigWrapper(),
         Sound.getConfigWrapper(),
@@ -164,6 +168,10 @@ public class GTMobs extends JavaPlugin {
 
   public MainConfig getMainConfig() {
     return mainConfig;
+  }
+
+  public ItemConfig getItemConfig() {
+    return itemConfig;
   }
 
   public MobConfig getMobConfig() {
