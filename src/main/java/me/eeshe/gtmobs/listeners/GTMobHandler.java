@@ -108,7 +108,6 @@ public class GTMobHandler implements Listener {
   @EventHandler
   public void onGTMobDeath(GTMobDeathEvent event) {
     ActiveMob activeMob = event.getActiveMob();
-    activeMob.unregister();
 
     LivingEntity livingEntity = activeMob.getLivingEntity();
     Location particleLocation = livingEntity.getLocation().add(0, 1, 0);
@@ -120,5 +119,6 @@ public class GTMobHandler implements Listener {
     for (ConfigParticle configParticle : gtMob.getOnDeathParticles()) {
       configParticle.spawn(particleLocation);
     }
+    Bukkit.getScheduler().runTaskLater(plugin, () -> activeMob.unregister(), 1L);
   }
 }

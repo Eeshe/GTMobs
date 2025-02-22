@@ -47,7 +47,7 @@ public class MobDisguise {
       return;
     }
     LivingEntity livingEntity = activeMob.getLivingEntity();
-    livingEntity.setSilent(false);
+    livingEntity.setSilent(true);
     if (!skinNames.isEmpty() && skinItem == null) {
       applySkinDisguise(livingEntity);
     } else if (skinNames.isEmpty() && skinItem != null) {
@@ -72,7 +72,7 @@ public class MobDisguise {
       return;
     }
     LivingEntity livingEntity = activeMob.getLivingEntity();
-    livingEntity.setSilent(false);
+    livingEntity.setSilent(true);
     if (!skinNames.isEmpty() && skinItem == null) {
       applySkinDisguise(livingEntity, player);
     } else if (skinNames.isEmpty() && skinItem != null) {
