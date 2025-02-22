@@ -3,23 +3,17 @@ package me.eeshe.gtmobs.models;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-
-import com.mojang.authlib.GameProfile;
 
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
@@ -27,16 +21,6 @@ import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 import me.eeshe.gtmobs.util.StringUtil;
-import net.minecraft.server.v1_12_R1.EntityLiving;
-import net.minecraft.server.v1_12_R1.EntityPlayer;
-import net.minecraft.server.v1_12_R1.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_12_R1.PacketPlayOutEntityHeadRotation;
-import net.minecraft.server.v1_12_R1.PacketPlayOutEntityMetadata;
-import net.minecraft.server.v1_12_R1.PacketPlayOutEntityTeleport;
-import net.minecraft.server.v1_12_R1.PacketPlayOutNamedEntitySpawn;
-import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo;
-import net.minecraft.server.v1_12_R1.PlayerInteractManager;
-import net.minecraft.server.v1_12_R1.WorldServer;
 
 public class GTMob {
 
@@ -132,11 +116,15 @@ public class GTMob {
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
 
-    applyDisguise(livingEntity);
     applyAge(livingEntity);
     setEquipment(livingEntity);
     applyAttributes(livingEntity);
 
+    ActiveMob activeMob = new ActiveMob(livingEntity, id, spawner);
+    activeMob.register();
+    if (disguise != null) {
+      disguise.apply(activeMob);
+    }
     // Play spawn particles
     for (ConfigParticle spawnParticle : spawnParticles) {
       spawnParticle.spawn(location);
@@ -145,63 +133,7 @@ public class GTMob {
     for (ConfigSound spawnSound : spawnSounds) {
       spawnSound.play(location);
     }
-    new ActiveMob(livingEntity, id, spawner).register();
     return livingEntity;
-  }
-
-  private void applyDisguise(LivingEntity livingEntity) {
-    if (disguise == null || !disguise.isEnabled()) {
-      return;
-    }
-    WorldServer nmsWorld = ((CraftWorld) livingEntity.getWorld()).getHandle();
-    EntityLiving nmsLivingEntity = (EntityLiving) nmsWorld.getEntity(livingEntity.getUniqueId());
-    EntityPlayer fakePlayer = new EntityPlayer(
-        nmsWorld.getMinecraftServer(),
-        nmsWorld,
-        new GameProfile(UUID.randomUUID(), "ElRichMC"),
-        new PlayerInteractManager(nmsWorld));
-
-    for (Player player : livingEntity.getWorld().getPlayers()) {
-      sendPackets(player, nmsLivingEntity, fakePlayer);
-    }
-  }
-
-  private static void sendPackets(Player player, EntityLiving nmsLivingEntity,
-      EntityPlayer fakePlayer) {
-
-    EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
-    // Send player info packet to add the fake player
-    nmsPlayer.playerConnection
-        .sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, fakePlayer));
-
-    // Send entity destroy packet to remove the living entity
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(nmsLivingEntity.getId()));
-
-    // Send named entity spawn packet to spawn the fake player
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(fakePlayer));
-
-    // Send entity metadata packet to update the fake player's metadata
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityMetadata(
-        fakePlayer.getId(),
-        fakePlayer.getDataWatcher(),
-        true));
-
-    // Send entity head rotation packet to update the fake player's head rotation
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityHeadRotation(
-        fakePlayer,
-        (byte) (nmsLivingEntity.yaw * 256 / 360)));
-
-    // Send entity teleport packet to update the fake player's position
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityTeleport(fakePlayer));
-
-    // // Send entity equipment packets to set the fake player's equipment
-    // for (int i = 0; i < 5; i++) {
-    // ItemStack item = fakePlayer.getEquipment(i);
-    // if (item != null) {
-    // ((CraftPlayer) player).getHandle().playerConnection
-    // .sendPacket(new PacketPlayOutEntityEquipment(fakePlayer.getId(), i, item));
-    // }
-    // }
   }
 
   /**
