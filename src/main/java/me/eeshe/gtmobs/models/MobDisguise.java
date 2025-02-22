@@ -2,14 +2,14 @@ package me.eeshe.gtmobs.models;
 
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,17 +19,13 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
-import me.eeshe.gtmobs.GTMobs;
 import net.minecraft.server.v1_12_R1.EntityLiving;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
-import net.minecraft.server.v1_12_R1.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_12_R1.PacketPlayOutNamedEntitySpawn;
-import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo;
-import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
 import net.minecraft.server.v1_12_R1.PlayerInteractManager;
 import net.minecraft.server.v1_12_R1.WorldServer;
 
 public class MobDisguise {
+  private static final Map<String, Property> CACHED_SKINS = new HashMap<>();
 
   private final boolean enabled;
   private final List<String> skinNames;
@@ -97,9 +93,9 @@ public class MobDisguise {
    * @param livingEntity Living entity to disguise
    */
   private void applySkinDisguise(LivingEntity livingEntity) {
-    EntityPlayer fakePlayer = createFakePlayer(livingEntity);
+    FakePlayer fakePlayer = createFakePlayer(livingEntity);
     for (Player player : livingEntity.getWorld().getPlayers()) {
-      sendDisguisePackets(player, getNmsLivingEntity(livingEntity), fakePlayer);
+      fakePlayer.spawn(player);
     }
   }
 
@@ -111,11 +107,8 @@ public class MobDisguise {
    * @param player       Player the entity is being disguised for
    */
   private void applySkinDisguise(LivingEntity livingEntity, Player player) {
-    sendDisguisePackets(player, getNmsLivingEntity(livingEntity),
-        createFakePlayer(livingEntity));
+    createFakePlayer(livingEntity).spawn(player);
   }
-
-  // TODO: UPDATE NPC SKIN WHEN THE fetchSkin COMPLETABLE FUTURE FINISHES
 
   /**
    * Creates the fake player used to disguise the passed living entity
@@ -123,26 +116,26 @@ public class MobDisguise {
    * @param livingEntity Living entity to disguise
    * @return Created fake player
    */
-  private EntityPlayer createFakePlayer(LivingEntity livingEntity) {
+  private FakePlayer createFakePlayer(LivingEntity livingEntity) {
     WorldServer nmsWorld = ((CraftWorld) livingEntity.getWorld()).getHandle();
     EntityLiving nmsLivingEntity = getNmsLivingEntity(livingEntity);
 
     String disguiseName = getRandomSkinName();
     GameProfile gameProfile = new GameProfile(UUID.randomUUID(), disguiseName);
-    EntityPlayer fakePlayer = new EntityPlayer(
+    EntityPlayer entityPlayer = new EntityPlayer(
         nmsWorld.getMinecraftServer(),
         nmsWorld,
         gameProfile,
         new PlayerInteractManager(nmsWorld));
 
-    fakePlayer.h(nmsLivingEntity.getId());
-    fakePlayer.setLocation(nmsLivingEntity.locX, nmsLivingEntity.locY,
+    entityPlayer.h(nmsLivingEntity.getId());
+    entityPlayer.setLocation(nmsLivingEntity.locX, nmsLivingEntity.locY,
         nmsLivingEntity.locZ, nmsLivingEntity.yaw, nmsLivingEntity.pitch);
 
-    fetchSkin(disguiseName).whenComplete((skin, throwable) -> {
-      gameProfile.getProperties().put("textures", new Property("textures", skin[0], skin[1]));
+    CompletableFuture<Property> skinFuture = fetchSkin(disguiseName).whenComplete((skinProperty, throwable) -> {
+      gameProfile.getProperties().put("textures", skinProperty);
     });
-    return fakePlayer;
+    return new FakePlayer(entityPlayer, skinFuture);
   }
 
   /**
@@ -152,7 +145,10 @@ public class MobDisguise {
    * @param name Name of the skin to fetch
    * @return Fetch skin texture and signature
    */
-  private CompletableFuture<String[]> fetchSkin(String name) {
+  private CompletableFuture<Property> fetchSkin(String name) {
+    if (CACHED_SKINS.containsKey(name)) {
+      return CompletableFuture.completedFuture(CACHED_SKINS.get(name));
+    }
     return CompletableFuture.supplyAsync(() -> {
       try {
         URL uuidUrl = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
@@ -166,10 +162,14 @@ public class MobDisguise {
             .getAsJsonArray("properties").get(0).getAsJsonObject();
         String texture = property.get("value").getAsString();
         String signature = property.get("signature").getAsString();
-        return new String[] { texture, signature };
+
+        Property skinProperty = new Property("textures", texture, signature);
+        CACHED_SKINS.put(name, skinProperty);
+
+        return skinProperty;
       } catch (Exception e) {
         e.printStackTrace();
-        return new String[] { "", "" };
+        return null;
       }
     });
   }
@@ -183,43 +183,6 @@ public class MobDisguise {
   private EntityLiving getNmsLivingEntity(LivingEntity livingEntity) {
     return (EntityLiving) (((CraftWorld) livingEntity.getWorld()).getHandle())
         .getEntity(livingEntity.getUniqueId());
-  }
-
-  private static void sendDisguisePackets(Player player, EntityLiving nmsLivingEntity,
-      EntityPlayer fakePlayer) {
-
-    EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
-
-    // Remove GTMob living entity
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(nmsLivingEntity.getId()));
-
-    // Add fake player to TAB list
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, fakePlayer));
-
-    // Spawn fake player
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(fakePlayer));
-
-    // Remove fake player from TAB list
-    nmsPlayer.playerConnection
-        .sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.REMOVE_PLAYER, fakePlayer));
-
-    // Add delay to give time for the skin to add
-    Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
-      // Remove GTMob living entity
-      nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(nmsLivingEntity.getId()));
-
-      // Add fake player to TAB list
-      nmsPlayer.playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, fakePlayer));
-
-      // Spawn fake player
-      nmsPlayer.playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(fakePlayer));
-
-      Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(),
-          () -> nmsPlayer.playerConnection
-              .sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.REMOVE_PLAYER, fakePlayer)),
-          1L);
-
-    }, 100L);
   }
 
   public boolean isEnabled() {
