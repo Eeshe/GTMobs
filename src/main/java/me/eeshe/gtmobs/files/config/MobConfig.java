@@ -214,7 +214,7 @@ public class MobConfig extends ConfigWrapper {
     if (config.contains(path)) {
       return;
     }
-    config.addDefault(path + ".enable", mobDisguise.isEnabled());
+    config.addDefault(path + ".enabled", mobDisguise.isEnabled());
     config.addDefault(path + ".skins", mobDisguise.getSkinNames());
     ConfigUtil.writeConfigItemStack(config, path + ".item", mobDisguise.getSkinItem());
   }

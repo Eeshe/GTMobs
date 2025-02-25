@@ -10,8 +10,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
 import com.google.gson.JsonObject;
@@ -21,6 +23,7 @@ import com.mojang.authlib.properties.Property;
 
 import net.minecraft.server.v1_12_R1.EntityLiving;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
+import net.minecraft.server.v1_12_R1.EnumItemSlot;
 import net.minecraft.server.v1_12_R1.PlayerInteractManager;
 import net.minecraft.server.v1_12_R1.WorldServer;
 
@@ -128,14 +131,28 @@ public class MobDisguise {
         gameProfile,
         new PlayerInteractManager(nmsWorld));
 
+    // Set the ID to the same as the LivingEntity
     entityPlayer.h(nmsLivingEntity.getId());
+
     entityPlayer.setLocation(nmsLivingEntity.locX, nmsLivingEntity.locY,
         nmsLivingEntity.locZ, nmsLivingEntity.yaw, nmsLivingEntity.pitch);
+
+    // Set FakePlayer equipment
+    EntityEquipment entityEquipment = livingEntity.getEquipment();
+    Map<EnumItemSlot, net.minecraft.server.v1_12_R1.ItemStack> equipment = new HashMap<>();
+    if (entityEquipment != null) {
+      equipment.put(EnumItemSlot.HEAD, CraftItemStack.asNMSCopy(entityEquipment.getHelmet()));
+      equipment.put(EnumItemSlot.CHEST, CraftItemStack.asNMSCopy(entityEquipment.getChestplate()));
+      equipment.put(EnumItemSlot.LEGS, CraftItemStack.asNMSCopy(entityEquipment.getLeggings()));
+      equipment.put(EnumItemSlot.FEET, CraftItemStack.asNMSCopy(entityEquipment.getBoots()));
+      equipment.put(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(entityEquipment.getItemInMainHand()));
+      equipment.put(EnumItemSlot.OFFHAND, CraftItemStack.asNMSCopy(entityEquipment.getItemInOffHand()));
+    }
 
     CompletableFuture<Property> skinFuture = fetchSkin(disguiseName).whenComplete((skinProperty, throwable) -> {
       gameProfile.getProperties().put("textures", skinProperty);
     });
-    return new FakePlayer(entityPlayer, skinFuture);
+    return new FakePlayer(entityPlayer, equipment, skinFuture);
   }
 
   /**

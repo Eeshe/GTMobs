@@ -11,6 +11,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.eeshe.gtmobs.commands.CommandCompleter;
+import me.eeshe.gtmobs.commands.CommandPackets;
 import me.eeshe.gtmobs.commands.CommandRunner;
 import me.eeshe.gtmobs.commands.GTMobsCommand;
 import me.eeshe.gtmobs.commands.PluginCommand;
@@ -112,7 +113,8 @@ public class GTMobs extends JavaPlugin {
     this.commandExecutor = new CommandRunner(this);
     this.commandCompleter = new CommandCompleter(this);
     registerCommands(List.of(
-        new GTMobsCommand(this)));
+        new GTMobsCommand(this),
+        new CommandPackets(this)));
   }
 
   /**

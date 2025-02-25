@@ -1,5 +1,9 @@
 package me.eeshe.gtmobs.models;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
@@ -10,51 +14,102 @@ import com.mojang.authlib.properties.Property;
 
 import me.eeshe.gtmobs.GTMobs;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
+import net.minecraft.server.v1_12_R1.EnumItemSlot;
+import net.minecraft.server.v1_12_R1.ItemStack;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_12_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_12_R1.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
+import net.minecraft.server.v1_12_R1.PlayerConnection;
 
 public class FakePlayer {
+  private static final Map<Integer, FakePlayer> FAKE_PLAYERS = new HashMap<>();
+
   private final EntityPlayer entityPlayer;
+  private final Map<EnumItemSlot, ItemStack> equipment;
   private final CompletableFuture<Property> skinFuture;
 
-  public FakePlayer(EntityPlayer entityPlayer, CompletableFuture<Property> skinFuture) {
+  public FakePlayer(EntityPlayer entityPlayer, Map<EnumItemSlot, ItemStack> equipment,
+      CompletableFuture<Property> skinFuture) {
     this.entityPlayer = entityPlayer;
+    this.equipment = equipment;
     this.skinFuture = skinFuture;
+
+    FAKE_PLAYERS.put(entityPlayer.getId(), this);
   }
 
+  /**
+   * Spawns the FakePlayer for the passed player
+   *
+   * @param player Player to spawn the FakePlayer to
+   */
   public void spawn(Player player) {
     EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
+    sendFakePlayerPackets(nmsPlayer);
+    skinFuture.whenComplete((arg0, arg1) -> {
+      sendFakePlayerPackets(nmsPlayer);
+    });
+  }
+
+  /**
+   * Sends the packets to spawn the FakePlayer for the passed NMS Player
+   *
+   * @param nmsPlayer NMS Player to send the packets to
+   */
+  private void sendFakePlayerPackets(EntityPlayer nmsPlayer) {
+    PlayerConnection playerConnection = nmsPlayer.playerConnection;
 
     // Remove GTMob living entity
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(entityPlayer.getId()));
+    playerConnection.sendPacket(new PacketPlayOutEntityDestroy(entityPlayer.getId()));
 
     // Add fake player to TAB list
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, entityPlayer));
+    playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, entityPlayer));
 
     // Spawn fake player
-    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(entityPlayer));
+    playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(entityPlayer));
 
-    // Remove fake player from TAB list
-    nmsPlayer.playerConnection
-        .sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.REMOVE_PLAYER, entityPlayer));
+    Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(),
+        () -> {
+          playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.REMOVE_PLAYER,
+              entityPlayer));
+          for (PacketPlayOutEntityEquipment equipmentPacket : createEquipmentPackets()) {
+            playerConnection.sendPacket(equipmentPacket);
+          }
+        },
+        5L);
+  }
 
-    skinFuture.whenComplete((arg0, arg1) -> {
-      // Remove GTMob living entity
-      nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(entityPlayer.getId()));
+  /**
+   * Creates the equipment packets for FakePlayer
+   *
+   * @return List of equipment packets to send
+   */
+  private List<PacketPlayOutEntityEquipment> createEquipmentPackets() {
+    int entityId = entityPlayer.getId();
+    List<PacketPlayOutEntityEquipment> equipmentPackets = new ArrayList<>();
+    for (EnumItemSlot enumItemSlot : EnumItemSlot.values()) {
+      equipmentPackets.add(new PacketPlayOutEntityEquipment(
+          entityId,
+          enumItemSlot,
+          equipment.getOrDefault(enumItemSlot, null)));
+    }
+    return equipmentPackets;
+  }
 
-      // Add fake player to TAB list
-      nmsPlayer.playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.ADD_PLAYER, entityPlayer));
+  public void clearEquipment() {
+    for (EnumItemSlot enumItemSlot : EnumItemSlot.values()) {
+      entityPlayer.setEquipment(enumItemSlot, null);
+    }
+    for (PacketPlayOutEntityEquipment equipmentPacket : createEquipmentPackets()) {
+      for (Player player : Bukkit.getOnlinePlayers()) {
+        (((CraftPlayer) player).getHandle()).playerConnection.sendPacket(equipmentPacket);
+      }
+    }
+  }
 
-      // Spawn fake player
-      nmsPlayer.playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(entityPlayer));
-
-      Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(),
-          () -> nmsPlayer.playerConnection
-              .sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.REMOVE_PLAYER, entityPlayer)),
-          5L);
-    });
+  public static Map<Integer, FakePlayer> getFakePlayers() {
+    return FAKE_PLAYERS;
   }
 
   public EntityPlayer getEntityPlayer() {
