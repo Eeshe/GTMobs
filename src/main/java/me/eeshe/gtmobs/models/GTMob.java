@@ -170,7 +170,7 @@ public class GTMob {
       entityEquipment.setBoots(equipment.getOrDefault(EquipmentSlot.FEET, null));
       entityEquipment.setBootsDropChance(0);
       entityEquipment.setItemInMainHand(equipment.getOrDefault(EquipmentSlot.HAND, null));
-      entityEquipment.setItemInMainHandDropChance(100);
+      entityEquipment.setItemInMainHandDropChance(0);
       entityEquipment.setItemInOffHand(equipment.getOrDefault(EquipmentSlot.OFF_HAND, null));
       entityEquipment.setItemInOffHandDropChance(0);
     }
