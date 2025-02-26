@@ -28,6 +28,7 @@ public class GTMob {
   private final EntityType entityType;
   private final boolean isBaby;
   private final String displayName;
+  private final MobDisguise disguise;
   private final Map<EquipmentSlot, ItemStack> equipment;
   private final Map<Attribute, Double> attributes;
   private final List<ConfigSound> spawnSounds;
@@ -40,15 +41,17 @@ public class GTMob {
   private final List<MobActionChain> onDeathActions;
 
   public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
-      Map<EquipmentSlot, ItemStack> equipment, Map<Attribute, Double> attributes,
-      List<ConfigSound> spawnSounds, List<ConfigParticle> spawnParticles,
-      List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
-      IntRange experienceDrop, List<MobActionChain> onHitActions,
-      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
+      MobDisguise disguise, Map<EquipmentSlot, ItemStack> equipment,
+      Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
+      List<ConfigParticle> spawnParticles, List<ConfigParticle> onHitParticles,
+      List<ConfigParticle> onDeathParticles, IntRange experienceDrop,
+      List<MobActionChain> onHitActions, List<MobActionChain> onTargetHitActions,
+      List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
     this.displayName = displayName;
+    this.disguise = disguise;
     this.equipment = equipment;
     this.attributes = attributes;
     this.spawnSounds = spawnSounds;
@@ -113,7 +116,32 @@ public class GTMob {
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
 
-    // Attempt to set baby setting
+    applyAge(livingEntity);
+    setEquipment(livingEntity);
+    applyAttributes(livingEntity);
+
+    ActiveMob activeMob = new ActiveMob(livingEntity, id, spawner);
+    activeMob.register();
+    if (disguise != null) {
+      disguise.apply(activeMob);
+    }
+    // Play spawn particles
+    for (ConfigParticle spawnParticle : spawnParticles) {
+      spawnParticle.spawn(location);
+    }
+    // Play spawn sound
+    for (ConfigSound spawnSound : spawnSounds) {
+      spawnSound.play(location);
+    }
+    return livingEntity;
+  }
+
+  /**
+   * Applies the GTMob age to the passed living entity
+   *
+   * @param livingEntity Living entity to apply the age to
+   */
+  private void applyAge(LivingEntity livingEntity) {
     if (livingEntity instanceof Zombie) {
       ((Zombie) livingEntity).setBaby(isBaby);
     } else if (livingEntity instanceof Ageable) {
@@ -123,25 +151,37 @@ public class GTMob {
         ((Ageable) livingEntity).setAdult();
       }
     }
+  }
 
-    // Set equipment
+  /**
+   * Sets the equipment of the GTMob to the passed living entity
+   *
+   * @param livingEntity Living entity to equip
+   */
+  private void setEquipment(LivingEntity livingEntity) {
     EntityEquipment entityEquipment = livingEntity.getEquipment();
     if (entityEquipment != null) {
       entityEquipment.setHelmet(equipment.getOrDefault(EquipmentSlot.HEAD, null));
       entityEquipment.setHelmetDropChance(0);
       entityEquipment.setChestplate(equipment.getOrDefault(EquipmentSlot.CHEST, null));
-      entityEquipment.setChestplateDropChance(100);
+      entityEquipment.setChestplateDropChance(0);
       entityEquipment.setLeggings(equipment.getOrDefault(EquipmentSlot.LEGS, null));
-      entityEquipment.setLeggingsDropChance(100);
+      entityEquipment.setLeggingsDropChance(0);
       entityEquipment.setBoots(equipment.getOrDefault(EquipmentSlot.FEET, null));
-      entityEquipment.setBootsDropChance(100);
+      entityEquipment.setBootsDropChance(0);
       entityEquipment.setItemInMainHand(equipment.getOrDefault(EquipmentSlot.HAND, null));
-      entityEquipment.setItemInMainHandDropChance(100);
+      entityEquipment.setItemInMainHandDropChance(0);
       entityEquipment.setItemInOffHand(equipment.getOrDefault(EquipmentSlot.OFF_HAND, null));
       entityEquipment.setItemInOffHandDropChance(0);
     }
+  }
 
-    // Apply attributes
+  /**
+   * Applies the attributes of the GTMob to the passed living entity
+   *
+   * @param livingEntity Living entity to apply the attributes to
+   */
+  private void applyAttributes(LivingEntity livingEntity) {
     for (Entry<Attribute, Double> entry : attributes.entrySet()) {
       AttributeInstance attributeInstance = livingEntity.getAttribute(entry.getKey());
       if (attributeInstance == null) {
@@ -152,16 +192,6 @@ public class GTMob {
         livingEntity.setHealth(entry.getValue());
       }
     }
-    // Play spawn particles
-    for (ConfigParticle spawnParticle : spawnParticles) {
-      spawnParticle.spawn(location);
-    }
-    // Play spawn sound
-    for (ConfigSound spawnSound : spawnSounds) {
-      spawnSound.play(location);
-    }
-    new ActiveMob(livingEntity, id, spawner).register();
-    return livingEntity;
   }
 
   public String getId() {
@@ -178,6 +208,10 @@ public class GTMob {
 
   public String getDisplayName() {
     return displayName;
+  }
+
+  public MobDisguise getDisguise() {
+    return disguise;
   }
 
   public Map<EquipmentSlot, ItemStack> getEquipment() {

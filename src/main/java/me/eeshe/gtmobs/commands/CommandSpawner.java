@@ -19,7 +19,6 @@ import me.eeshe.gtmobs.models.Spawner;
 import me.eeshe.gtmobs.models.config.Message;
 import me.eeshe.gtmobs.models.config.Sound;
 import me.eeshe.gtmobs.util.CompletionUtil;
-import me.eeshe.gtmobs.util.LogUtil;
 import me.eeshe.gtmobs.util.Messager;
 import me.eeshe.gtmobs.util.StringUtil;
 
@@ -403,7 +402,6 @@ class CommandSpawnerSetMob extends CommandSpawnerSet {
 
   @Override
   public void execute(CommandSender sender, String[] args, Spawner spawner) {
-    LogUtil.sendWarnLog("SET MOB ARGS: " + Arrays.toString(args));
     String mobId = args[0];
     GTMob gtMob = GTMob.fromId(mobId);
     if (gtMob == null) {

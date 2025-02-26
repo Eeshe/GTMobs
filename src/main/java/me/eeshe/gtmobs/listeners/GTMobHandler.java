@@ -16,6 +16,7 @@ import me.eeshe.gtmobs.events.GTMobDeathEvent;
 import me.eeshe.gtmobs.models.ActiveMob;
 import me.eeshe.gtmobs.models.GTMob;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
+import me.eeshe.gtmobs.models.config.Sound;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 
 public class GTMobHandler implements Listener {
@@ -65,6 +66,7 @@ public class GTMobHandler implements Listener {
     for (ConfigParticle configParticle : gtMob.getOnHitParticles()) {
       configParticle.spawn(location);
     }
+    Sound.MOB_HIT_SOUND.play(activeMob.getLivingEntity().getLocation());
   }
 
   /**
@@ -97,6 +99,7 @@ public class GTMobHandler implements Listener {
       return;
     }
     event.setDroppedExp(activeMob.getGTMob().getExperienceDrop().generateRandom());
+    event.getDrops().clear();
     Bukkit.getPluginManager().callEvent(new GTMobDeathEvent(activeMob, entity.getKiller()));
   }
 
@@ -108,7 +111,6 @@ public class GTMobHandler implements Listener {
   @EventHandler
   public void onGTMobDeath(GTMobDeathEvent event) {
     ActiveMob activeMob = event.getActiveMob();
-    activeMob.unregister();
 
     LivingEntity livingEntity = activeMob.getLivingEntity();
     Location particleLocation = livingEntity.getLocation().add(0, 1, 0);
@@ -120,5 +122,6 @@ public class GTMobHandler implements Listener {
     for (ConfigParticle configParticle : gtMob.getOnDeathParticles()) {
       configParticle.spawn(particleLocation);
     }
+    Bukkit.getScheduler().runTaskLater(plugin, () -> activeMob.unregister(), 1L);
   }
 }

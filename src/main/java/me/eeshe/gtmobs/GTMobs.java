@@ -11,6 +11,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.eeshe.gtmobs.commands.CommandCompleter;
+import me.eeshe.gtmobs.commands.CommandPackets;
 import me.eeshe.gtmobs.commands.CommandRunner;
 import me.eeshe.gtmobs.commands.GTMobsCommand;
 import me.eeshe.gtmobs.commands.PluginCommand;
@@ -18,6 +19,7 @@ import me.eeshe.gtmobs.files.config.ConfigWrapper;
 import me.eeshe.gtmobs.files.config.ItemConfig;
 import me.eeshe.gtmobs.files.config.MainConfig;
 import me.eeshe.gtmobs.files.config.MobConfig;
+import me.eeshe.gtmobs.listeners.DisguiseHandler;
 import me.eeshe.gtmobs.listeners.GTMobHandler;
 import me.eeshe.gtmobs.managers.ActiveMobManager;
 import me.eeshe.gtmobs.managers.DataManager;
@@ -111,7 +113,8 @@ public class GTMobs extends JavaPlugin {
     this.commandExecutor = new CommandRunner(this);
     this.commandCompleter = new CommandCompleter(this);
     registerCommands(List.of(
-        new GTMobsCommand(this)));
+        new GTMobsCommand(this),
+        new CommandPackets(this)));
   }
 
   /**
@@ -139,6 +142,7 @@ public class GTMobs extends JavaPlugin {
     PluginManager pluginManager = Bukkit.getPluginManager();
 
     pluginManager.registerEvents(new GTMobHandler(this), this);
+    pluginManager.registerEvents(new DisguiseHandler(this), this);
   }
 
   @Override
