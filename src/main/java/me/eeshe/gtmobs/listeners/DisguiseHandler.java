@@ -1,8 +1,13 @@
 package me.eeshe.gtmobs.listeners;
 
 import java.lang.reflect.Field;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -12,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import io.netty.channel.ChannelDuplexHandler;
@@ -22,15 +28,21 @@ import me.eeshe.gtmobs.models.ActiveMob;
 import me.eeshe.gtmobs.models.FakePlayer;
 import me.eeshe.gtmobs.models.GTMob;
 import me.eeshe.gtmobs.models.ItemEntity;
+import me.eeshe.gtmobs.util.LogUtil;
 import net.minecraft.server.v1_12_R1.DataWatcher;
 import net.minecraft.server.v1_12_R1.DataWatcher.Item;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
+import net.minecraft.server.v1_12_R1.Packet;
 import net.minecraft.server.v1_12_R1.PacketPlayOutAnimation;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityStatus;
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateAttributes;
 
 public class DisguiseHandler implements Listener {
+  // USED ONLY TO DEBUG WHAT PACKETS CRASH CLIENTS, DO NOT USE IN PRODUCTION
+  private static final List<Class<?>> IGNORED_PACKET_CLASSES = List.of();
+
+  private final Map<UUID, Deque<Packet<?>>> packetDequeus = new HashMap<>();
   private final GTMobs plugin;
 
   public DisguiseHandler(GTMobs plugin) {
@@ -56,6 +68,7 @@ public class DisguiseHandler implements Listener {
    * @param player Player to register the listener to
    */
   private void registerDisguisePacketListener(Player player) {
+    packetDequeus.put(player.getUniqueId(), new ArrayDeque<>(10));
     ChannelDuplexHandler handler = new ChannelDuplexHandler() {
 
       @Override
@@ -109,6 +122,10 @@ public class DisguiseHandler implements Listener {
           } catch (Exception ignore) {
           }
         }
+        if (IGNORED_PACKET_CLASSES.contains(packet.getClass())) {
+          return;
+        }
+        cachePacket(player, (Packet<?>) packet);
         super.write(ctx, packet, promise);
       }
     };
@@ -116,6 +133,14 @@ public class DisguiseHandler implements Listener {
     nmsPlayer.playerConnection.networkManager.channel.pipeline().addBefore("packet_handler",
         "GTMobs",
         handler);
+  }
+
+  private void cachePacket(Player player, Packet<?> packet) {
+    Deque<Packet<?>> deque = packetDequeus.get(player.getUniqueId());
+    if (deque.size() == 10) {
+      deque.poll();
+    }
+    deque.offer(packet);
   }
 
   /**
@@ -157,5 +182,15 @@ public class DisguiseHandler implements Listener {
       }
       gtMob.getDisguise().apply(activeMob, player);
     }
+  }
+
+  @EventHandler
+  public void onPlayerLeave(PlayerQuitEvent event) {
+    Player player = event.getPlayer();
+    LogUtil.sendWarnLog("LAST 10 PACKETS SENT TO: " + player.getName());
+    for (Packet<?> packet : packetDequeus.get(player.getUniqueId())) {
+      LogUtil.sendWarnLog("- " + packet.getClass().getSimpleName());
+    }
+    packetDequeus.remove(player.getUniqueId());
   }
 }
