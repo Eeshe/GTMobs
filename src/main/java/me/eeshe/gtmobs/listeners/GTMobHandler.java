@@ -99,7 +99,7 @@ public class GTMobHandler implements Listener {
       return;
     }
     event.setDroppedExp(activeMob.getGTMob().getExperienceDrop().generateRandom());
-    event.getDrops().clear();
+    // event.getDrops().clear();
     Bukkit.getPluginManager().callEvent(new GTMobDeathEvent(activeMob, entity.getKiller()));
   }
 

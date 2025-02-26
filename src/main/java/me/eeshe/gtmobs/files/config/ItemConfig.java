@@ -51,6 +51,8 @@ public class ItemConfig extends ConfigWrapper {
     }
     ConfigUtil.writeConfigItemStack(config, "items.Test_Helmet", ItemUtil.generateItemStack(
         Material.IRON_HELMET,
+        (short) 0,
+        (byte) 0,
         "&7Test Helmet",
         List.of("&eLore Line"),
         false,
@@ -62,9 +64,12 @@ public class ItemConfig extends ConfigWrapper {
             Operation.ADD_NUMBER)),
         new ItemFlag[] {
             ItemFlag.HIDE_UNBREAKABLE
-        }));
+        },
+        null));
     ConfigUtil.writeConfigItemStack(config, "items.Test_Sword", ItemUtil.generateItemStack(
         Material.DIAMOND_SWORD,
+        (short) 0,
+        (byte) 0,
         "&7Test Sword",
         List.of("&eLore Line"),
         true,
@@ -76,7 +81,7 @@ public class ItemConfig extends ConfigWrapper {
             Operation.ADD_NUMBER)),
         new ItemFlag[] {
             ItemFlag.HIDE_UNBREAKABLE
-        }));
+        }, null));
   }
 
   private void writeDefaultAttributes() {

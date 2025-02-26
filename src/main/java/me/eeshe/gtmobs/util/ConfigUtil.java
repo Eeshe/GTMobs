@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
@@ -19,6 +20,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -43,6 +45,9 @@ public class ConfigUtil {
     if (meta.hasDisplayName()) {
       config.set(path + ".name", meta.getDisplayName());
     }
+    config.set(path + ".unbreakable", meta.isUnbreakable());
+    config.set(path + ".damage", item.getType().getMaxDurability() - item.getDurability());
+    config.set(path + ".data", item.getData().getData());
     List<String> lore = meta.getLore();
     if (meta.hasEnchants()) {
       String enchantmentsPath = path + ".enchantments";
@@ -57,6 +62,13 @@ public class ConfigUtil {
     if (!meta.getItemFlags().isEmpty()) {
       config.set(path + ".item-flags", meta.getItemFlags().stream()
           .map(ItemFlag::name).collect(Collectors.toList()));
+    }
+    if (meta instanceof LeatherArmorMeta) {
+      Color color = ((LeatherArmorMeta) meta).getColor();
+      config.set(path + ".color", String.join("-", List.of(
+          String.valueOf(color.getRed()),
+          String.valueOf(color.getGreen()),
+          String.valueOf(color.getBlue()))));
     }
   }
 
@@ -74,11 +86,16 @@ public class ConfigUtil {
     int amount = itemSection.getInt("amount", 1);
     String displayName = itemSection.getString("name");
     List<String> lore = itemSection.getStringList("lore");
+    boolean unbreakable = itemSection.getBoolean("unbreakable");
+    short durability = (short) itemSection.getInt("damage", 0);
+    byte data = (byte) itemSection.getInt("data", 0);
     Map<Enchantment, Integer> enchantments = fetchEnchantments(config, path + ".enchantments");
     Multimap<Attribute, AttributeModifier> attributes = fetchAttributes(config, path + ".attributes");
     ItemFlag[] itemFlags = fetchItemFlags(config, path + ".item-flags");
+    Color color = fetchColor(itemSection.getString("color"));
 
-    ItemStack item = new ItemStack(material, amount);
+    ItemStack item = new ItemStack(material, amount, data);
+    item.setDurability(durability);
     ItemMeta meta = item.getItemMeta();
     if (meta == null) {
       return item;
@@ -105,7 +122,11 @@ public class ConfigUtil {
         attributes.put(entry.getKey(), entry.getValue());
       }
     }
+    if (color != null && meta instanceof LeatherArmorMeta) {
+      ((LeatherArmorMeta) meta).setColor(color);
+    }
     meta.setLore(lore);
+    meta.setUnbreakable(unbreakable);
     meta.addItemFlags(itemFlags);
     item.setItemMeta(meta);
     item = ItemUtil.applyAttributes(item, attributes);
@@ -172,6 +193,29 @@ public class ConfigUtil {
       itemFlags.add(itemFlag);
     }
     return itemFlags.toArray(new ItemFlag[0]);
+  }
+
+  public static Color fetchColor(String colorString) {
+    if (colorString == null) {
+      return null;
+    }
+    String[] params = colorString.split("-");
+    if (params.length < 3) {
+      LogUtil.sendWarnLog("Not enough color arguments found in '" + colorString + "'.");
+      return null;
+    }
+    int red;
+    int green;
+    int blue;
+    try {
+      red = Integer.parseInt(params[0]);
+      green = Integer.parseInt(params[1]);
+      blue = Integer.parseInt(params[2]);
+    } catch (Exception e) {
+      LogUtil.sendWarnLog("Invalid number found in color string '" + colorString + "'.");
+      return null;
+    }
+    return Color.fromRGB(red, green, blue);
   }
 
   /**

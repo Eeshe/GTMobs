@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -15,6 +16,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import com.google.common.collect.Multimap;
 
@@ -29,13 +31,16 @@ public class ItemUtil {
   public static ItemStack generateItemStack(Material material, String name, List<String> lore,
       Map<Enchantment, Integer> enchantments,
       Multimap<Attribute, AttributeModifier> attributes) {
-    return generateItemStack(material, name, lore, false, enchantments, attributes, null);
+    return generateItemStack(material, (short) -1, (byte) -1, name, lore, false,
+        enchantments, attributes, null, null);
   }
 
-  public static ItemStack generateItemStack(Material material, String name, List<String> lore,
-      boolean unbreakable, Map<Enchantment, Integer> enchantments,
-      Multimap<Attribute, AttributeModifier> attributes, ItemFlag[] itemFlags) {
-    ItemStack item = new ItemStack(material);
+  public static ItemStack generateItemStack(Material material, short damage,
+      byte data, String name, List<String> lore, boolean unbreakable,
+      Map<Enchantment, Integer> enchantments,
+      Multimap<Attribute, AttributeModifier> attributes, ItemFlag[] itemFlags, Color color) {
+    ItemStack item = new ItemStack(material, 1, data);
+    item.setDurability(damage);
     ItemMeta meta = item.getItemMeta();
     if (meta == null)
       return null;
@@ -49,6 +54,9 @@ public class ItemUtil {
     }
     if (itemFlags != null) {
       meta.addItemFlags(itemFlags);
+    }
+    if (color != null && meta instanceof LeatherArmorMeta) {
+      ((LeatherArmorMeta) meta).setColor(color);
     }
     item.setItemMeta(meta);
     if (enchantments != null) {
