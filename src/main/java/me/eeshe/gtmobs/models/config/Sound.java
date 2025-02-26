@@ -16,7 +16,8 @@ public enum Sound {
   PREVIOUS_PAGE("previous-page", true, org.bukkit.Sound.UI_BUTTON_CLICK, 0.6F, 1.1F),
   NEXT_PAGE("next-page", true, org.bukkit.Sound.UI_BUTTON_CLICK, 0.6F, 1.1F),
   INPUT_REQUEST("input-request", true, org.bukkit.Sound.BLOCK_NOTE_XYLOPHONE, 0.6F, 1.2F),
-  TELEPORT("teleport", true, org.bukkit.Sound.ENTITY_ENDERMEN_TELEPORT, 0.6F, 1.2F);
+  TELEPORT("teleport", true, org.bukkit.Sound.ENTITY_ENDERMEN_TELEPORT, 0.6F, 1.2F),
+  MOB_HIT_SOUND("mob-hit-sound", true, org.bukkit.Sound.ENTITY_PLAYER_HURT, 1F, 1F);
 
   private static final ConfigWrapper CONFIG_WRAPPER = new ConfigWrapper(GTMobs.getInstance(), null, "sounds.yml");
   private final String path;

@@ -21,11 +21,14 @@ import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.ActiveMob;
 import me.eeshe.gtmobs.models.FakePlayer;
 import me.eeshe.gtmobs.models.GTMob;
+import me.eeshe.gtmobs.models.ItemEntity;
 import net.minecraft.server.v1_12_R1.DataWatcher;
 import net.minecraft.server.v1_12_R1.DataWatcher.Item;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
+import net.minecraft.server.v1_12_R1.PacketPlayOutAnimation;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityStatus;
+import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateAttributes;
 
 public class DisguiseHandler implements Listener {
   private final GTMobs plugin;
@@ -57,7 +60,10 @@ public class DisguiseHandler implements Listener {
 
       @Override
       public void write(ChannelHandlerContext ctx, Object packet, ChannelPromise promise) throws Exception {
-        if (packet instanceof PacketPlayOutEntityMetadata || packet instanceof PacketPlayOutEntityStatus) {
+        if (packet instanceof PacketPlayOutEntityMetadata ||
+            packet instanceof PacketPlayOutEntityStatus ||
+            packet instanceof PacketPlayOutUpdateAttributes ||
+            packet instanceof PacketPlayOutAnimation) {
           try {
             // Use reflection to access the packet's private attributes
             Class<?> packetClass = packet.getClass();
@@ -67,7 +73,12 @@ public class DisguiseHandler implements Listener {
             idField.setAccessible(true);
             int packetEntityId = (int) idField.get(packet);
             idField.setAccessible(false);
-            if (FakePlayer.getFakePlayers().containsKey(packetEntityId)) {
+            if ((packet instanceof PacketPlayOutUpdateAttributes || packet instanceof PacketPlayOutAnimation) &&
+                ItemEntity.getItemEntities().containsKey(packetEntityId)) {
+              return;
+            }
+            if (FakePlayer.getFakePlayers().containsKey(packetEntityId) ||
+                ItemEntity.getItemEntities().containsKey(packetEntityId)) {
               if (packet instanceof PacketPlayOutEntityStatus) {
                 // Accessing status byte
                 Field statusField = packetClass.getDeclaredField("b");
@@ -79,8 +90,7 @@ public class DisguiseHandler implements Listener {
                   // doesn't drop items in Minecraft < 1.13
                   return;
                 }
-              }
-              // Accessing DataWatcher
+              } // Accessing DataWatcher
               Field dataWatcherField = packetClass.getDeclaredField("b");
               dataWatcherField.setAccessible(true);
               List<DataWatcher.Item<?>> dataWatchers = (List<Item<?>>) dataWatcherField.get(packet);

@@ -16,6 +16,7 @@ import me.eeshe.gtmobs.events.GTMobDeathEvent;
 import me.eeshe.gtmobs.models.ActiveMob;
 import me.eeshe.gtmobs.models.GTMob;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
+import me.eeshe.gtmobs.models.config.Sound;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
 
 public class GTMobHandler implements Listener {
@@ -65,6 +66,7 @@ public class GTMobHandler implements Listener {
     for (ConfigParticle configParticle : gtMob.getOnHitParticles()) {
       configParticle.spawn(location);
     }
+    Sound.MOB_HIT_SOUND.play(activeMob.getLivingEntity().getLocation());
   }
 
   /**

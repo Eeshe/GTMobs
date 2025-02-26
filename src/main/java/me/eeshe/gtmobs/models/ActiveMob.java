@@ -1,6 +1,7 @@
 package me.eeshe.gtmobs.models;
 
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -118,6 +119,10 @@ public class ActiveMob {
       spawner.removeSpawnedMob(livingEntity);
     }
     stopDespawnTask();
+
+    int entityId = (((CraftEntity) livingEntity).getHandle()).getId();
+    FakePlayer.getFakePlayers().remove(entityId);
+    ItemEntity.getItemEntities().remove(entityId);
   }
 
   /**

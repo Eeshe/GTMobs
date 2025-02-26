@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
@@ -21,6 +22,7 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import net.minecraft.server.v1_12_R1.EntityItem;
 import net.minecraft.server.v1_12_R1.EntityLiving;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.EnumItemSlot;
@@ -54,12 +56,12 @@ public class MobDisguise {
     if (!skinNames.isEmpty() && skinItem == null) {
       applySkinDisguise(livingEntity);
     } else if (skinNames.isEmpty() && skinItem != null) {
-      // TODO: Apply item disguise
+      applyItemDisguise(livingEntity);
     } else {
       if (ThreadLocalRandom.current().nextBoolean()) {
         applySkinDisguise(livingEntity);
       } else {
-        // TODO: Apply item disguise
+        applyItemDisguise(livingEntity);
       }
     }
   }
@@ -79,12 +81,12 @@ public class MobDisguise {
     if (!skinNames.isEmpty() && skinItem == null) {
       applySkinDisguise(livingEntity, player);
     } else if (skinNames.isEmpty() && skinItem != null) {
-      // TODO: Apply item disguise
+      applyItemDisguise(livingEntity, player);
     } else {
       if (ThreadLocalRandom.current().nextBoolean()) {
-        applySkinDisguise(livingEntity);
+        applySkinDisguise(livingEntity, player);
       } else {
-        // TODO: Apply item disguise
+        applyItemDisguise(livingEntity, player);
       }
     }
   }
@@ -189,6 +191,53 @@ public class MobDisguise {
         return null;
       }
     });
+  }
+
+  /**
+   * Applies the ItemDisguise for the passed LivingEntity for all online players
+   *
+   * @param livingEntity LivingEntity to disguise
+   */
+  private void applyItemDisguise(LivingEntity livingEntity) {
+    ItemEntity itemEntity = createItemEntity(livingEntity);
+    for (Player online : Bukkit.getOnlinePlayers()) {
+      itemEntity.spawn(online);
+      applyItemDisguise(livingEntity, online);
+    }
+  }
+
+  /**
+   * Applies the ItemDisguse for the passed LivingEntity to the passed player
+   *
+   * @param livingEntity LivingEntity to disguise
+   * @param player       Player to disguise the entity for
+   */
+  private void applyItemDisguise(LivingEntity livingEntity, Player player) {
+    ItemEntity itemEntity = createItemEntity(livingEntity);
+    itemEntity.spawn(player);
+  }
+
+  /**
+   * Creates and returns an ItemEntity to replace the passed LivingEntity
+   *
+   * @param livingEntity LivingEntity to Replace
+   * @return ItemEntity to replace the passed LivingEntity
+   */
+  private ItemEntity createItemEntity(LivingEntity livingEntity) {
+    net.minecraft.server.v1_12_R1.ItemStack nmsItemStack = CraftItemStack.asNMSCopy(skinItem);
+    EntityLiving nmsLivingEntity = getNmsLivingEntity(livingEntity);
+
+    EntityItem entityItem = new EntityItem(
+        nmsLivingEntity.getWorld(),
+        nmsLivingEntity.locX,
+        nmsLivingEntity.locY,
+        nmsLivingEntity.locZ,
+        nmsItemStack);
+    entityItem.h(nmsLivingEntity.getId());
+    entityItem.setCustomName(livingEntity.getCustomName());
+    entityItem.setCustomNameVisible(livingEntity.isCustomNameVisible());
+
+    return new ItemEntity(entityItem);
   }
 
   /**
