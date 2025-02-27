@@ -138,7 +138,7 @@ public class Spawner {
       if (activeMob == null) {
         continue;
       }
-      activeMob.despawn();
+      activeMob.despawn(true);
     }
     spawnedMobs.clear();
   }

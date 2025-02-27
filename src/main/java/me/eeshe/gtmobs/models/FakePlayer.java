@@ -39,6 +39,10 @@ public class FakePlayer {
     FAKE_PLAYERS.put(entityPlayer.getId(), this);
   }
 
+  public static boolean isFakePlayerId(int entityId) {
+    return FAKE_PLAYERS.containsKey(entityId);
+  }
+
   /**
    * Spawns the FakePlayer for the passed player
    *

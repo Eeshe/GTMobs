@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -25,6 +26,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+import me.arcaniax.hdb.api.HeadDatabaseAPI;
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.config.ConfigExplosion;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
@@ -77,6 +79,11 @@ public class ConfigUtil {
     if (itemSection == null)
       return null;
 
+    String headDatabaseId = itemSection.getString("hdb-id");
+    if (headDatabaseId != null && Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
+      ItemStack headItem = new HeadDatabaseAPI().getItemHead(headDatabaseId);
+      return headItem;
+    }
     String materialName = itemSection.getString("material", "");
     Material material = Material.matchMaterial(materialName);
     if (material == null) {

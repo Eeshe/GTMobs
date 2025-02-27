@@ -126,6 +126,6 @@ public class GTMobHandler implements Listener {
     for (ConfigParticle configParticle : gtMob.getOnDeathParticles()) {
       configParticle.spawn(particleLocation);
     }
-    Bukkit.getScheduler().runTaskLater(plugin, () -> activeMob.unregister(), 1L);
+    Bukkit.getScheduler().runTaskLater(plugin, () -> activeMob.unregister(true), 1L);
   }
 }

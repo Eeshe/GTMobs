@@ -22,6 +22,10 @@ public class ItemEntity {
     ITEM_ENTITIES.put(entityItem.getId(), this);
   }
 
+  public static boolean isItemEntityId(int entityId) {
+    return ITEM_ENTITIES.containsKey(entityId);
+  }
+
   /**
    * Spawns the ItemEntity for the passed Player
    *

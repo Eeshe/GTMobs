@@ -19,8 +19,8 @@ import me.eeshe.gtmobs.files.config.ConfigWrapper;
 import me.eeshe.gtmobs.files.config.ItemConfig;
 import me.eeshe.gtmobs.files.config.MainConfig;
 import me.eeshe.gtmobs.files.config.MobConfig;
-import me.eeshe.gtmobs.listeners.DisguiseHandler;
 import me.eeshe.gtmobs.listeners.GTMobHandler;
+import me.eeshe.gtmobs.listeners.PacketHandler;
 import me.eeshe.gtmobs.managers.ActiveMobManager;
 import me.eeshe.gtmobs.managers.DataManager;
 import me.eeshe.gtmobs.managers.GTMobManager;
@@ -142,7 +142,7 @@ public class GTMobs extends JavaPlugin {
     PluginManager pluginManager = Bukkit.getPluginManager();
 
     pluginManager.registerEvents(new GTMobHandler(this), this);
-    pluginManager.registerEvents(new DisguiseHandler(this), this);
+    pluginManager.registerEvents(new PacketHandler(this), this);
   }
 
   @Override

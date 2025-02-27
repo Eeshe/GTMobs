@@ -25,21 +25,23 @@ public class ActiveMobManager extends DataManager {
 
   @Override
   public void unload() {
-    killAll(null, 0);
+    killAll(null, 0, false);
   }
 
   /**
    * Kills all the ActiveMobs
    *
-   * @param center Center of the kill radius
-   * @param radius Radius of the kill
+   * @param center          Center of the kill radius
+   * @param radius          Radius of the Kill
+   * @param clearDisguiseId Whether it should clear the ID of the disguise
+   *                        entity
    * @return Killed ActiveMobs
    */
-  public int killAll(Location center, double radius) {
+  public int killAll(Location center, double radius, boolean clearDisguiseId) {
     int killedAmount = 0;
     if (radius == 0) {
       for (ActiveMob activeMob : new ArrayList<>(getPlugin().getActiveMobManager().getActiveMobs().values())) {
-        activeMob.despawn();
+        activeMob.despawn(clearDisguiseId);
         killedAmount += 1;
       }
     } else if (center != null) {
@@ -48,7 +50,7 @@ public class ActiveMobManager extends DataManager {
         if (gtMob == null) {
           continue;
         }
-        gtMob.despawn();
+        gtMob.despawn(clearDisguiseId);
         killedAmount += 1;
       }
     }

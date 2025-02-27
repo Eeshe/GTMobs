@@ -37,7 +37,7 @@ public class CommandKillAll extends PluginCommand {
       }
     }
     Location center = sender instanceof Player ? ((Player) sender).getLocation() : null;
-    int killedAmount = getPlugin().getActiveMobManager().killAll(center, radius);
+    int killedAmount = getPlugin().getActiveMobManager().killAll(center, radius, true);
     Message.KILL_ALL_COMMAND_SUCCESS.sendSuccess(sender, Map.of("%amount%", StringUtil.formatNumber(killedAmount)));
   }
 }

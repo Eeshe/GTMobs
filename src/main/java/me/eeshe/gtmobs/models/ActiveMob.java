@@ -84,7 +84,7 @@ public class ActiveMob {
           return;
         }
         if (despawnCounter >= despawnTimerSeconds) {
-          despawn();
+          despawn(true);
           return;
         }
         despawnCounter += 1;
@@ -110,27 +110,38 @@ public class ActiveMob {
 
   /**
    * Despawns and unregisters the GTMob
+   *
+   * @param clearDisguiseId Whether it should clear the ID of the disguised
+   *                        entity
    */
-  public void despawn() {
+  public void despawn(boolean clearDisguiseId) {
     DESPAWNING_ENTITIES_UUID.add(livingEntity.getUniqueId());
     livingEntity.setHealth(0);
     DESPAWNING_ENTITIES_UUID.remove(livingEntity.getUniqueId());
-    unregister();
+    unregister(clearDisguiseId);
   }
 
   /**
    * Unregisters the ActiveMob from the ActiveMobManager class
+   *
+   * @param clearDisguiseId Whether it should clear the ID of the disguised
+   *                        entity
    */
-  public void unregister() {
+  public void unregister(boolean clearDisguiseId) {
     GTMobs.getInstance().getActiveMobManager().getActiveMobs().remove(livingEntity.getUniqueId());
     if (spawner != null) {
       spawner.removeSpawnedMob(livingEntity);
     }
     stopDespawnTask();
 
+    if (!clearDisguiseId) {
+      return;
+    }
     int entityId = (((CraftEntity) livingEntity).getHandle()).getId();
-    FakePlayer.getFakePlayers().remove(entityId);
-    ItemEntity.getItemEntities().remove(entityId);
+    Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
+      FakePlayer.getFakePlayers().remove(entityId);
+      ItemEntity.getItemEntities().remove(entityId);
+    }, 100L);
   }
 
   /**

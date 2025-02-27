@@ -1,9 +1,10 @@
 package me.eeshe.gtmobs.util;
 
-import me.eeshe.gtmobs.GTMobs;
+import java.util.logging.Logger;
+
 import org.bukkit.Bukkit;
 
-import java.util.logging.Logger;
+import me.eeshe.gtmobs.GTMobs;
 
 public class LogUtil {
   /**
