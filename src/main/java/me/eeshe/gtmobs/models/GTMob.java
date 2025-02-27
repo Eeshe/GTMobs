@@ -16,6 +16,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.models.config.ConfigKnockback;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
@@ -30,6 +31,7 @@ public class GTMob {
   private final String displayName;
   private final MobDisguise disguise;
   private final Map<EquipmentSlot, ItemStack> equipment;
+  private final ConfigKnockback meleeKnockback;
   private final Map<Attribute, Double> attributes;
   private final List<ConfigSound> spawnSounds;
   private final List<ConfigParticle> spawnParticles;
@@ -42,17 +44,18 @@ public class GTMob {
 
   public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
       MobDisguise disguise, Map<EquipmentSlot, ItemStack> equipment,
-      Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
-      List<ConfigParticle> spawnParticles, List<ConfigParticle> onHitParticles,
-      List<ConfigParticle> onDeathParticles, IntRange experienceDrop,
-      List<MobActionChain> onHitActions, List<MobActionChain> onTargetHitActions,
-      List<MobActionChain> onDeathActions) {
+      ConfigKnockback meleeKnockback, Map<Attribute, Double> attributes,
+      List<ConfigSound> spawnSounds, List<ConfigParticle> spawnParticles,
+      List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
+      IntRange experienceDrop, List<MobActionChain> onHitActions,
+      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
     this.displayName = displayName;
     this.disguise = disguise;
     this.equipment = equipment;
+    this.meleeKnockback = meleeKnockback;
     this.attributes = attributes;
     this.spawnSounds = spawnSounds;
     this.spawnParticles = spawnParticles;
@@ -216,6 +219,10 @@ public class GTMob {
 
   public Map<EquipmentSlot, ItemStack> getEquipment() {
     return equipment;
+  }
+
+  public ConfigKnockback getMeleeKnockback() {
+    return meleeKnockback;
   }
 
   public Map<Attribute, Double> getAttributes() {

@@ -26,6 +26,7 @@ import com.google.common.collect.ArrayListMultimap;
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.models.GTMob;
 import me.eeshe.gtmobs.models.MobDisguise;
+import me.eeshe.gtmobs.models.config.ConfigKnockback;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.ConfigSound;
 import me.eeshe.gtmobs.models.config.IntRange;
@@ -86,6 +87,7 @@ public class MobConfig extends ConfigWrapper {
                     null,
                     null)),
             new HashMap<>(),
+            new ConfigKnockback(0.5, true),
             Map.of(Attribute.GENERIC_MOVEMENT_SPEED, 1D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(new ConfigParticle(Particle.VILLAGER_HAPPY, 5, 0.5, 0.5, 0.5, 0.1)),
@@ -146,6 +148,7 @@ public class MobConfig extends ConfigWrapper {
                     null,
                     null)),
             new HashMap<>(),
+            null,
             Map.of(Attribute.GENERIC_MAX_HEALTH, 200D),
             List.of(new ConfigSound(Sound.ENTITY_EVOCATION_ILLAGER_CAST_SPELL, true, 1.0F, 0.5F)),
             List.of(new ConfigParticle(Particle.VILLAGER_HAPPY, 5, 0.5, 0.5, 0.5, 0.1)),
@@ -198,6 +201,7 @@ public class MobConfig extends ConfigWrapper {
     config.addDefault(path + ".entity-type", gtMob.getEntityType().name());
     config.addDefault(path + ".display-name", gtMob.getDisplayName());
     writeMobDisguise(path + ".disguise", gtMob.getDisguise());
+    writeConfigKnockback(path + ".melee-knockback", gtMob.getMeleeKnockback());
     ConfigUtil.writeAttributeMap(config, path + ".attributes", gtMob.getAttributes());
     writeConfigSounds(path + ".spawn-sounds", gtMob.getSpawnSounds());
     ConfigUtil.writeConfigParticles(config, path + ".spawn-particles", gtMob.getSpawnParticles());
@@ -223,6 +227,19 @@ public class MobConfig extends ConfigWrapper {
     config.addDefault(path + ".enabled", mobDisguise.isEnabled());
     config.addDefault(path + ".skins", mobDisguise.getSkinNames());
     ConfigUtil.writeConfigItemStack(config, path + ".item", mobDisguise.getSkinItem());
+  }
+
+  /**
+   * Writes the passed ConfigKnockback to the passed path
+   *
+   * @param path            Path to write in
+   * @param configKnockback ConfigKnockback to write
+   */
+  private void writeConfigKnockback(String path, ConfigKnockback configKnockback) {
+    FileConfiguration config = getConfig();
+
+    config.addDefault(path + ".strength", configKnockback.getStrength());
+    config.addDefault(path + ".airborne", configKnockback.isAirborne());
   }
 
   /**
@@ -284,6 +301,7 @@ public class MobConfig extends ConfigWrapper {
     String displayName = mobSection.getString("display-name", "");
     MobDisguise disguise = fetchMobDisguise(id + ".disguise");
     Map<EquipmentSlot, ItemStack> equipment = fetchEquipment(id);
+    ConfigKnockback meleeKnockback = fetchConfigKnockback(id);
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
     List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds"));
     List<ConfigParticle> spawnParticles = ConfigUtil
@@ -297,9 +315,9 @@ public class MobConfig extends ConfigWrapper {
     List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit"));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death"));
 
-    return new GTMob(id, entityType, isBaby, displayName, disguise, equipment, attributes,
-        spawnSounds, spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
-        onHitActions, onTargetHitActions, onDeathActions);
+    return new GTMob(id, entityType, isBaby, displayName, disguise, equipment,
+        meleeKnockback, attributes, spawnSounds, spawnParticles, onHitParticles,
+        onDeathParticles, experienceDrop, onHitActions, onTargetHitActions, onDeathActions);
   }
 
   /**
@@ -347,6 +365,23 @@ public class MobConfig extends ConfigWrapper {
       equipment.put(equipmentSlot, item);
     }
     return equipment;
+  }
+
+  /**
+   * Fetches the configured ConfigKnockback in the passed path
+   *
+   * @param path Path to search in
+   * @return Configured ConfigKnockback
+   */
+  private ConfigKnockback fetchConfigKnockback(String path) {
+    ConfigurationSection knockbackSection = getConfig().getConfigurationSection(path);
+    if (knockbackSection == null) {
+      return null;
+    }
+    double strength = knockbackSection.getDouble("strength");
+    boolean airborne = knockbackSection.getBoolean("airborne");
+
+    return new ConfigKnockback(strength, airborne);
   }
 
   /**

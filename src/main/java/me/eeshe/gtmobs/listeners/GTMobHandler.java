@@ -2,12 +2,16 @@ package me.eeshe.gtmobs.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.events.EntityDamageGTMobEvent;
@@ -15,6 +19,7 @@ import me.eeshe.gtmobs.events.GTMobDamageEntityEvent;
 import me.eeshe.gtmobs.events.GTMobDeathEvent;
 import me.eeshe.gtmobs.models.ActiveMob;
 import me.eeshe.gtmobs.models.GTMob;
+import me.eeshe.gtmobs.models.config.ConfigKnockback;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.Sound;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
@@ -81,9 +86,52 @@ public class GTMobHandler implements Listener {
     GTMob gtMob = activeMob.getGTMob();
     Entity damaged = event.getDamaged();
 
+    handleAttackKnockback(activeMob, damaged);
     for (MobActionChain mobActionChain : gtMob.getOnTargetHitActions()) {
       mobActionChain.attemptExecution(activeMob.getLivingEntity(), damaged);
     }
+  }
+
+  /**
+   * Handles the knockback of the melee attack between the two passed entities
+   *
+   * @param activeMob Attacker ActiveMob
+   * @param damaged   Attacked entity
+   */
+  private void handleAttackKnockback(ActiveMob activeMob, Entity damaged) {
+    if (!isMeleeAttacker(activeMob.getLivingEntity())) {
+      return;
+    }
+    ConfigKnockback knockbackSettings = activeMob.getGTMob().getMeleeKnockback();
+    if (knockbackSettings == null) {
+      return;
+    }
+    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+      Vector velocity = damaged.getVelocity();
+      velocity = velocity.multiply(knockbackSettings.getStrength());
+      if (knockbackSettings.isAirborne()) {
+        velocity.setY(velocity.getY() * knockbackSettings.getStrength());
+      }
+      damaged.setVelocity(velocity);
+    }, 0L);
+  }
+
+  /**
+   * Checks if the passed LivingEntity is a melee attacker
+   *
+   * @param gtMobEntity LivingEntity to check
+   * @return True if the LivingEntity is a melee attacker
+   */
+  private boolean isMeleeAttacker(LivingEntity gtMobEntity) {
+    EntityEquipment entityEquipment = gtMobEntity.getEquipment();
+    if (entityEquipment == null) {
+      return true;
+    }
+    ItemStack mainHandItem = entityEquipment.getItemInMainHand();
+    ItemStack offHandItem = entityEquipment.getItemInOffHand();
+
+    return EnchantmentTarget.BOW.includes(mainHandItem) ||
+        EnchantmentTarget.BOW.includes(offHandItem);
   }
 
   /**
