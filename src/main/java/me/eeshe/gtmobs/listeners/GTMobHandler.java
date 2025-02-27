@@ -130,8 +130,8 @@ public class GTMobHandler implements Listener {
     ItemStack mainHandItem = entityEquipment.getItemInMainHand();
     ItemStack offHandItem = entityEquipment.getItemInOffHand();
 
-    return EnchantmentTarget.BOW.includes(mainHandItem) ||
-        EnchantmentTarget.BOW.includes(offHandItem);
+    return !EnchantmentTarget.BOW.includes(mainHandItem) &&
+        !EnchantmentTarget.BOW.includes(offHandItem);
   }
 
   /**
