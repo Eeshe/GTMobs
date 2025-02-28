@@ -240,6 +240,9 @@ public class MobConfig extends ConfigWrapper {
    * @param configKnockback ConfigKnockback to write
    */
   private void writeConfigKnockback(String path, ConfigKnockback configKnockback) {
+    if (configKnockback == null) {
+      return;
+    }
     FileConfiguration config = getConfig();
 
     config.addDefault(path + ".strength", configKnockback.getStrength());

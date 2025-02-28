@@ -20,6 +20,7 @@ import me.eeshe.gtmobs.files.config.ItemConfig;
 import me.eeshe.gtmobs.files.config.MainConfig;
 import me.eeshe.gtmobs.files.config.MobConfig;
 import me.eeshe.gtmobs.listeners.GTMobHandler;
+import me.eeshe.gtmobs.listeners.HeadDatabaseHandler;
 import me.eeshe.gtmobs.listeners.PacketHandler;
 import me.eeshe.gtmobs.managers.ActiveMobManager;
 import me.eeshe.gtmobs.managers.DataManager;
@@ -143,6 +144,7 @@ public class GTMobs extends JavaPlugin {
 
     pluginManager.registerEvents(new GTMobHandler(this), this);
     pluginManager.registerEvents(new PacketHandler(this), this);
+    pluginManager.registerEvents(new HeadDatabaseHandler(this), this);
   }
 
   @Override

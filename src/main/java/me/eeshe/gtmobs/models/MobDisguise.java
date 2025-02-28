@@ -234,7 +234,9 @@ public class MobDisguise {
         nmsLivingEntity.locZ,
         nmsItemStack);
     entityItem.h(nmsLivingEntity.getId());
-    entityItem.setCustomName(livingEntity.getCustomName());
+    if (livingEntity.getCustomName() != null) {
+      entityItem.setCustomName(livingEntity.getCustomName());
+    }
     entityItem.setCustomNameVisible(livingEntity.isCustomNameVisible());
 
     return new ItemEntity(entityItem);
