@@ -5,10 +5,12 @@ import org.bukkit.Location;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -134,6 +136,28 @@ public class GTMobHandler implements Listener {
 
     return !EnchantmentTarget.BOW.includes(mainHandItem) &&
         !EnchantmentTarget.BOW.includes(offHandItem);
+  }
+
+  /**
+   * Listens when a mob launches a projectile and attempts to cancel it if its a
+   * GTMob with its vanilla attack disabled
+   *
+   * @param event ProjectileLaunchEvent
+   */
+  @EventHandler
+  public void onProjectileLaunch(ProjectileLaunchEvent event) {
+    Projectile projectile = event.getEntity();
+    if (!(projectile.getShooter() instanceof LivingEntity)) {
+      return;
+    }
+    ActiveMob activeMob = ActiveMob.fromEntity((LivingEntity) projectile.getShooter());
+    if (activeMob == null) {
+      return;
+    }
+    if (!activeMob.getGTMob().hasDisabledVanillaAttack()) {
+      return;
+    }
+    event.setCancelled(true);
   }
 
   /**

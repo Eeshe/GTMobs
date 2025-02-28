@@ -28,6 +28,7 @@ public class GTMob {
   private final String id;
   private final EntityType entityType;
   private final boolean isBaby;
+  private final boolean disabledVanillaAttack;
   private final String displayName;
   private final MobDisguise disguise;
   private final Map<EquipmentSlot, ItemStack> equipment;
@@ -42,8 +43,8 @@ public class GTMob {
   private final List<MobActionChain> onTargetHitActions;
   private final List<MobActionChain> onDeathActions;
 
-  public GTMob(String id, EntityType entityType, boolean isBaby, String displayName,
-      MobDisguise disguise, Map<EquipmentSlot, ItemStack> equipment,
+  public GTMob(String id, EntityType entityType, boolean isBaby, boolean disabledVanillaAttack,
+      String displayName, MobDisguise disguise, Map<EquipmentSlot, ItemStack> equipment,
       ConfigKnockback meleeKnockback, Map<Attribute, Double> attributes,
       List<ConfigSound> spawnSounds, List<ConfigParticle> spawnParticles,
       List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
@@ -52,6 +53,7 @@ public class GTMob {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
+    this.disabledVanillaAttack = disabledVanillaAttack;
     this.displayName = displayName;
     this.disguise = disguise;
     this.equipment = equipment;
@@ -207,6 +209,10 @@ public class GTMob {
 
   public boolean isBaby() {
     return isBaby;
+  }
+
+  public boolean hasDisabledVanillaAttack() {
+    return disabledVanillaAttack;
   }
 
   public String getDisplayName() {
