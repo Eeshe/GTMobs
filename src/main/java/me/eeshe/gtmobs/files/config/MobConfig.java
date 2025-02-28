@@ -301,7 +301,7 @@ public class MobConfig extends ConfigWrapper {
     String displayName = mobSection.getString("display-name", "");
     MobDisguise disguise = fetchMobDisguise(id + ".disguise");
     Map<EquipmentSlot, ItemStack> equipment = fetchEquipment(id);
-    ConfigKnockback meleeKnockback = fetchConfigKnockback(id);
+    ConfigKnockback meleeKnockback = fetchConfigKnockback(id + ".melee-knockback");
     Map<Attribute, Double> attributes = ConfigUtil.fetchAttributeMap(config, id + ".attributes");
     List<ConfigSound> spawnSounds = computeConfigSounds(mobSection.getString("spawn-sounds"));
     List<ConfigParticle> spawnParticles = ConfigUtil

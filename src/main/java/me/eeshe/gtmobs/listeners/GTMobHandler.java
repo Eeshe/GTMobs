@@ -99,7 +99,8 @@ public class GTMobHandler implements Listener {
    * @param damaged   Attacked entity
    */
   private void handleAttackKnockback(ActiveMob activeMob, Entity damaged) {
-    if (!isMeleeAttacker(activeMob.getLivingEntity())) {
+    LivingEntity gtMobEntity = activeMob.getLivingEntity();
+    if (!isMeleeAttacker(gtMobEntity)) {
       return;
     }
     ConfigKnockback knockbackSettings = activeMob.getGTMob().getMeleeKnockback();
@@ -107,10 +108,11 @@ public class GTMobHandler implements Listener {
       return;
     }
     Bukkit.getScheduler().runTaskLater(plugin, () -> {
-      Vector velocity = damaged.getVelocity();
+      Vector velocity = damaged.getLocation().toVector()
+          .subtract(gtMobEntity.getLocation().toVector()).normalize();
       velocity = velocity.multiply(knockbackSettings.getStrength());
       if (knockbackSettings.isAirborne()) {
-        velocity.setY(velocity.getY() * knockbackSettings.getStrength());
+        velocity.add(new Vector(0, knockbackSettings.getStrength(), 0));
       }
       damaged.setVelocity(velocity);
     }, 0L);
