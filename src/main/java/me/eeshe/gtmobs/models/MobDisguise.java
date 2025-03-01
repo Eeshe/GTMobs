@@ -2,6 +2,7 @@ package me.eeshe.gtmobs.models;
 
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class MobDisguise {
   private void applySkinDisguise(LivingEntity livingEntity) {
     FakePlayer fakePlayer = createFakePlayer(livingEntity);
     for (Player player : livingEntity.getWorld().getPlayers()) {
-      fakePlayer.spawn(player);
+      fakePlayer.spawn(player, livingEntity);
     }
   }
 
@@ -112,7 +113,7 @@ public class MobDisguise {
    * @param player       Player the entity is being disguised for
    */
   private void applySkinDisguise(LivingEntity livingEntity, Player player) {
-    createFakePlayer(livingEntity).spawn(player);
+    createFakePlayer(livingEntity).spawn(player, livingEntity);
   }
 
   /**
@@ -125,8 +126,16 @@ public class MobDisguise {
     WorldServer nmsWorld = ((CraftWorld) livingEntity.getWorld()).getHandle();
     EntityLiving nmsLivingEntity = getNmsLivingEntity(livingEntity);
 
-    String disguiseName = getRandomSkinName();
-    GameProfile gameProfile = new GameProfile(UUID.randomUUID(), disguiseName);
+    String[] splitMobName = splitMobName(livingEntity);
+    String fakePlayerName;
+    if (splitMobName.length == 1) {
+      fakePlayerName = splitMobName[0];
+    } else if (splitMobName.length > 1) {
+      fakePlayerName = splitMobName[1];
+    } else {
+      fakePlayerName = "";
+    }
+    GameProfile gameProfile = new GameProfile(UUID.randomUUID(), fakePlayerName);
     EntityPlayer entityPlayer = new EntityPlayer(
         nmsWorld.getMinecraftServer(),
         nmsWorld,
@@ -151,10 +160,23 @@ public class MobDisguise {
       equipment.put(EnumItemSlot.OFFHAND, CraftItemStack.asNMSCopy(entityEquipment.getItemInOffHand()));
     }
 
-    CompletableFuture<Property> skinFuture = fetchSkin(disguiseName).whenComplete((skinProperty, throwable) -> {
-      gameProfile.getProperties().put("textures", skinProperty);
-    });
-    return new FakePlayer(entityPlayer, equipment, skinFuture);
+    CompletableFuture<Property> skinFuture = fetchSkin(getRandomSkinName())
+        .whenComplete((skinProperty, throwable) -> {
+          gameProfile.getProperties().put("textures", skinProperty);
+        });
+    return new FakePlayer(entityPlayer, splitMobName, equipment, skinFuture);
+  }
+
+  private String[] splitMobName(LivingEntity livingEntity) {
+    String customName = livingEntity.getCustomName();
+    if (customName == null) {
+      return null;
+    }
+    List<String> nameSegments = new ArrayList<>();
+    for (int index = 0; index < customName.length(); index += 16) {
+      nameSegments.add(customName.substring(index, Math.min(customName.length(), index + 16)));
+    }
+    return nameSegments.toArray(new String[0]);
   }
 
   /**
