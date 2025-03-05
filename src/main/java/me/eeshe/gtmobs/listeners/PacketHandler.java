@@ -36,6 +36,7 @@ import net.minecraft.server.v1_12_R1.Packet;
 import net.minecraft.server.v1_12_R1.PacketPlayOutAnimation;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_12_R1.PacketPlayOutEntityStatus;
+import net.minecraft.server.v1_12_R1.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_12_R1.PacketPlayOutUpdateAttributes;
 
 public class PacketHandler implements Listener {
@@ -46,7 +47,8 @@ public class PacketHandler implements Listener {
       PacketPlayOutEntityMetadata.class,
       PacketPlayOutEntityStatus.class,
       PacketPlayOutUpdateAttributes.class,
-      PacketPlayOutAnimation.class);
+      PacketPlayOutAnimation.class,
+      PacketPlayOutSpawnEntityLiving.class);
   private static final List<Integer> FAKE_PLAYER_IGNORED_DATA_WATCHER_TYPES = List.of(
       12, 14);
   private static final List<Integer> ITEM_ENTITY_IGNORED_DATA_WATCHER_TYPES = List.of(
@@ -67,8 +69,8 @@ public class PacketHandler implements Listener {
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
     Player player = event.getPlayer();
-    Bukkit.getScheduler().runTaskLater(plugin,
-        () -> sendDisguisePackets(player), 10L);
+    // Bukkit.getScheduler().runTaskLater(plugin,
+    // () -> sendDisguisePackets(player), 10L);
     registerDisguisePacketListener(player);
   }
 
@@ -101,6 +103,9 @@ public class PacketHandler implements Listener {
               }
               if (packet instanceof PacketPlayOutEntityMetadata) {
                 handleMetadataPacket((PacketPlayOutEntityMetadata) packet);
+              }
+              if (packet instanceof PacketPlayOutSpawnEntityLiving) {
+                handleSpawnEntityLivingPacket(player, (PacketPlayOutSpawnEntityLiving) packet);
               }
             }
           } catch (Exception ignore) {
@@ -222,6 +227,34 @@ public class PacketHandler implements Listener {
         && ITEM_ENTITY_IGNORED_DATA_WATCHER_TYPES.contains(packetTypeId);
   }
 
+  /**
+   * Handles the SpawnEntityLiving packet and applies the disguises of the
+   * entity
+   *
+   * @param player Player to handle the packet for
+   * @param packet Packet to handle
+   */
+  private void handleSpawnEntityLivingPacket(Player player,
+      PacketPlayOutSpawnEntityLiving packet) {
+    try {
+      Class<?> packetClass = packet.getClass();
+
+      Field uuidField = packetClass.getDeclaredField("b");
+      uuidField.setAccessible(true);
+      UUID uuid = (UUID) uuidField.get(packet);
+      uuidField.setAccessible(false);
+
+      ActiveMob activeMob = ActiveMob.fromEntity(Bukkit.getEntity(uuid));
+      if (activeMob == null) {
+        return;
+      }
+      Bukkit.getScheduler().runTaskLater(plugin,
+          () -> activeMob.getGTMob().getDisguise().apply(activeMob, player), 10L);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   private void cachePacket(Player player, Packet<?> packet) {
     if (!plugin.getMainConfig().isPacketDebuggingEnabled()) {
       return;
@@ -240,8 +273,8 @@ public class PacketHandler implements Listener {
    */
   @EventHandler
   public void onPlayerChangeWorlds(PlayerChangedWorldEvent event) {
-    Bukkit.getScheduler().runTaskLater(plugin,
-        () -> sendDisguisePackets(event.getPlayer()), 10L);
+    // Bukkit.getScheduler().runTaskLater(plugin,
+    // () -> sendDisguisePackets(event.getPlayer()), 10L);
   }
 
   /**
@@ -251,8 +284,8 @@ public class PacketHandler implements Listener {
    */
   @EventHandler
   public void onPlayerRespawn(PlayerRespawnEvent event) {
-    Bukkit.getScheduler().runTaskLater(plugin,
-        () -> sendDisguisePackets(event.getPlayer()), 10L);
+    // Bukkit.getScheduler().runTaskLater(plugin,
+    // () -> sendDisguisePackets(event.getPlayer()), 10L);
   }
 
   /**
