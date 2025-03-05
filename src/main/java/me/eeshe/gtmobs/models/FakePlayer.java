@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.mojang.authlib.properties.Property;
@@ -21,18 +23,23 @@ import net.minecraft.server.v1_12_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_12_R1.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_12_R1.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
+import net.minecraft.server.v1_12_R1.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.v1_12_R1.PlayerConnection;
+import net.minecraft.server.v1_12_R1.Scoreboard;
+import net.minecraft.server.v1_12_R1.ScoreboardTeam;
 
 public class FakePlayer {
   private static final Map<Integer, FakePlayer> FAKE_PLAYERS = new HashMap<>();
 
   private final EntityPlayer entityPlayer;
+  private final String[] splitMobName;
   private final Map<EnumItemSlot, ItemStack> equipment;
   private final CompletableFuture<Property> skinFuture;
 
-  public FakePlayer(EntityPlayer entityPlayer, Map<EnumItemSlot, ItemStack> equipment,
-      CompletableFuture<Property> skinFuture) {
+  public FakePlayer(EntityPlayer entityPlayer, String[] splitMobName,
+      Map<EnumItemSlot, ItemStack> equipment, CompletableFuture<Property> skinFuture) {
     this.entityPlayer = entityPlayer;
+    this.splitMobName = splitMobName;
     this.equipment = equipment;
     this.skinFuture = skinFuture;
 
@@ -48,7 +55,7 @@ public class FakePlayer {
    *
    * @param player Player to spawn the FakePlayer to
    */
-  public void spawn(Player player) {
+  public void spawn(Player player, LivingEntity livingEntity) {
     EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
     sendFakePlayerPackets(nmsPlayer);
     skinFuture.whenComplete((arg0, arg1) -> {
@@ -73,6 +80,20 @@ public class FakePlayer {
     // Spawn fake player
     playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(entityPlayer));
 
+    if (splitMobName != null && splitMobName.length != 1) {
+      String suffix = splitMobName.length > 2 ? splitMobName[2] : "";
+      ScoreboardTeam nmsTeam = createNMSTeam(splitMobName[0], suffix);
+
+      // Send team creation packet
+      playerConnection.sendPacket(new PacketPlayOutScoreboardTeam(nmsTeam, 0));
+
+      // Send packet to add the fake player to the team
+      playerConnection.sendPacket(new PacketPlayOutScoreboardTeam(
+          nmsTeam,
+          List.of(entityPlayer.getName()),
+          3));
+    }
+
     Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(),
         () -> {
           playerConnection.sendPacket(new PacketPlayOutPlayerInfo(EnumPlayerInfoAction.REMOVE_PLAYER,
@@ -82,6 +103,22 @@ public class FakePlayer {
           }
         },
         5L);
+  }
+
+  /**
+   * Creates an NMS Team with the passed prefix and suffix
+   *
+   * @param prefix Prefix of the team
+   * @param suffix Suffix of the team
+   * @return Created NMS team
+   */
+  private ScoreboardTeam createNMSTeam(String prefix, String suffix) {
+    ScoreboardTeam scoreboardTeam = new ScoreboardTeam(new Scoreboard(),
+        String.valueOf(ThreadLocalRandom.current().nextInt(999999999)));
+    scoreboardTeam.setPrefix(prefix);
+    scoreboardTeam.setSuffix(suffix);
+
+    return scoreboardTeam;
   }
 
   /**
