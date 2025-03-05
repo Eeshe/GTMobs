@@ -1,10 +1,7 @@
 package me.eeshe.gtmobs.models;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -14,8 +11,6 @@ import org.bukkit.scheduler.BukkitTask;
 import me.eeshe.gtmobs.GTMobs;
 
 public class ActiveMob {
-  private static final Set<UUID> DESPAWNING_ENTITIES_UUID = new HashSet<>();
-
   private final LivingEntity livingEntity;
   private final String gtMobId;
   private final Spawner spawner;
@@ -115,9 +110,12 @@ public class ActiveMob {
    *                        entity
    */
   public void despawn(boolean clearDisguiseId) {
-    DESPAWNING_ENTITIES_UUID.add(livingEntity.getUniqueId());
-    livingEntity.setHealth(0);
-    DESPAWNING_ENTITIES_UUID.remove(livingEntity.getUniqueId());
+    Chunk chunk = livingEntity.getLocation().getChunk();
+    chunk.load(false);
+
+    Entity searchedEntity = Bukkit.getEntity(livingEntity.getUniqueId());
+    searchedEntity.remove();
+
     unregister(clearDisguiseId);
   }
 
@@ -153,10 +151,6 @@ public class ActiveMob {
     }
     despawnTask.cancel();
     despawnTask = null;
-  }
-
-  public static Set<UUID> getDespawningEntitiesUuid() {
-    return DESPAWNING_ENTITIES_UUID;
   }
 
   public LivingEntity getLivingEntity() {

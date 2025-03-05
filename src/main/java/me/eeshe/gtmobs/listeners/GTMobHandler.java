@@ -180,9 +180,6 @@ public class GTMobHandler implements Listener {
     }
     event.getDrops().clear();
 
-    if (ActiveMob.getDespawningEntitiesUuid().contains(entity.getUniqueId())) {
-      return;
-    }
     event.setDroppedExp(activeMob.getGTMob().getExperienceDrop().generateRandom());
     Bukkit.getPluginManager().callEvent(new GTMobDeathEvent(activeMob, entity.getKiller()));
   }

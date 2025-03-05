@@ -120,6 +120,7 @@ public class GTMob {
     LivingEntity livingEntity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
+    livingEntity.setRemoveWhenFarAway(false);
 
     applyAge(livingEntity);
     setEquipment(livingEntity);
