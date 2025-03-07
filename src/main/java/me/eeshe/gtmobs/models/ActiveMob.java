@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import me.eeshe.gtmobs.GTMobs;
+import me.eeshe.gtmobs.util.LogUtil;
 
 public class ActiveMob {
   private final LivingEntity livingEntity;
@@ -114,8 +115,11 @@ public class ActiveMob {
     chunk.load(false);
 
     Entity searchedEntity = Bukkit.getEntity(livingEntity.getUniqueId());
-    searchedEntity.remove();
-
+    if (searchedEntity != null) {
+      searchedEntity.remove();
+    } else {
+      LogUtil.sendWarnLog("Couldn't find GTMob with UUID '" + livingEntity.getUniqueId() + "'.");
+    }
     unregister(clearDisguiseId);
   }
 
