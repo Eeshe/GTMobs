@@ -23,6 +23,7 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import me.eeshe.gtmobs.util.LogUtil;
 import net.minecraft.server.v1_12_R1.EntityItem;
 import net.minecraft.server.v1_12_R1.EntityLiving;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
@@ -100,6 +101,9 @@ public class MobDisguise {
    */
   private void applySkinDisguise(LivingEntity livingEntity) {
     FakePlayer fakePlayer = createFakePlayer(livingEntity);
+    if (fakePlayer == null) {
+      return;
+    }
     for (Player player : livingEntity.getWorld().getPlayers()) {
       fakePlayer.spawn(player, livingEntity);
     }
@@ -113,7 +117,11 @@ public class MobDisguise {
    * @param player       Player the entity is being disguised for
    */
   private void applySkinDisguise(LivingEntity livingEntity, Player player) {
-    createFakePlayer(livingEntity).spawn(player, livingEntity);
+    FakePlayer fakePlayer = createFakePlayer(livingEntity);
+    if (fakePlayer == null) {
+      return;
+    }
+    fakePlayer.spawn(player, livingEntity);
   }
 
   /**
@@ -125,6 +133,10 @@ public class MobDisguise {
   private FakePlayer createFakePlayer(LivingEntity livingEntity) {
     WorldServer nmsWorld = ((CraftWorld) livingEntity.getWorld()).getHandle();
     EntityLiving nmsLivingEntity = getNmsLivingEntity(livingEntity);
+    if (nmsLivingEntity == null) {
+      LogUtil.sendWarnLog("NULL NMS LIVING ENTITY");
+      return null;
+    }
 
     String[] splitMobName = splitMobName(livingEntity);
     String fakePlayerName;

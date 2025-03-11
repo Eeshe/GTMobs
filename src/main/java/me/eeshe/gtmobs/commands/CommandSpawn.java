@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import me.eeshe.gtmobs.GTMobs;
@@ -67,10 +68,21 @@ public class CommandSpawn extends PluginCommand {
       Message.NO_VALID_SPAWN_LOCATION.sendError(sender);
       return;
     }
+    boolean spawnErrors = false;
     for (int i = 0; i < amount; i++) {
       Location spawnLocation = safeLocations.size() == 1 ? safeLocations.get(0)
           : safeLocations.remove(0);
-      gtMob.spawn(spawnLocation);
+      LivingEntity spawnedMob = gtMob.spawn(spawnLocation);
+      if (spawnErrors) {
+        continue;
+      }
+      spawnErrors = spawnedMob == null;
+    }
+    if (spawnErrors) {
+      Message.SPAWN_ERROR.sendError(sender);
+      if (amount == 1) {
+        return;
+      }
     }
     Message.SPAWN_COMMAND_SUCCESS.sendSuccess(player, Map.ofEntries(
         Map.entry("%amount%", StringUtil.formatNumber(amount)),

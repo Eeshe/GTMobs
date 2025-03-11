@@ -118,6 +118,10 @@ public class GTMob {
       return null;
     }
     LivingEntity livingEntity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
+    if (livingEntity.isDead()) {
+      // Mob couldn't spawn
+      return null;
+    }
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
     livingEntity.setRemoveWhenFarAway(false);
