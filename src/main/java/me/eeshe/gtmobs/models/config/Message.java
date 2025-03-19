@@ -51,7 +51,9 @@ public enum Message {
   RELOAD_COMMAND_SUCCESS("reload-command-success", "&aConfiguration successfully reloaded."),
 
   SPAWN_COMMAND_INFO("spawn-command-info", "Spawns the specified GTMob."),
-  SPAWN_COMMAND_USAGE("spawn-command-usage", "/gtmobs spawn <Mob> [Amount] [Radius]"),
+  SPAWN_COMMAND_USAGE("spawn-command-usage", "/gtmobs spawn <Mob> [Amount] [Radius] [Player]"),
+  NOT_ENOUGH_ARGUMENTS("not-enough-arguments",
+      "&cYou need to specify all parameters when running this command from the console."),
   NO_VALID_SPAWN_LOCATION("no-valid-spawn-location", "&cCouldn't find a valid spawn location."),
   GTMOB_NOT_FOUND("gtmob-not-found", "&cGTMob &l%id%&c not found."),
   SPAWN_ERROR("spawn-error", "&cSome mobs couldn't be spawned. Please check the difficulty or chunk mob limits."),
