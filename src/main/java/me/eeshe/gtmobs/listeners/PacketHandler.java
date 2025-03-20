@@ -95,6 +95,9 @@ public class PacketHandler implements Listener {
               // packets
               return;
             }
+            if (msg instanceof PacketPlayOutSpawnEntityLiving) {
+              handleSpawnEntityLivingPacket(player, (PacketPlayOutSpawnEntityLiving) packet);
+            }
             if (FakePlayer.isFakePlayerId(packetEntityId) ||
                 ItemEntity.isItemEntityId(packetEntityId)) {
               if (packet instanceof PacketPlayOutEntityStatus &&
@@ -103,9 +106,6 @@ public class PacketHandler implements Listener {
               }
               if (packet instanceof PacketPlayOutEntityMetadata) {
                 handleMetadataPacket((PacketPlayOutEntityMetadata) packet);
-              }
-              if (packet instanceof PacketPlayOutSpawnEntityLiving) {
-                handleSpawnEntityLivingPacket(player, (PacketPlayOutSpawnEntityLiving) packet);
               }
             }
           } catch (Exception ignore) {
