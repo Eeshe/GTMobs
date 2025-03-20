@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import com.mojang.authlib.properties.Property;
 
 import me.eeshe.gtmobs.GTMobs;
+import net.minecraft.server.v1_12_R1.DataWatcherObject;
+import net.minecraft.server.v1_12_R1.DataWatcherRegistry;
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.EnumItemSlot;
 import net.minecraft.server.v1_12_R1.ItemStack;
@@ -79,6 +81,9 @@ public class FakePlayer {
 
     // Spawn fake player
     playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(entityPlayer));
+
+    // Enable skin layers
+    entityPlayer.getDataWatcher().set(new DataWatcherObject<>(13, DataWatcherRegistry.a), (byte) 127);
 
     if (splitMobName != null && splitMobName.length != 1) {
       String suffix = splitMobName.length > 2 ? splitMobName[2] : "";
