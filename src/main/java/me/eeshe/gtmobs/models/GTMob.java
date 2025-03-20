@@ -10,6 +10,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
@@ -28,6 +29,7 @@ public class GTMob {
   private final String id;
   private final EntityType entityType;
   private final boolean isBaby;
+  private final boolean isAggresive;
   private final boolean disabledVanillaAttack;
   private final String displayName;
   private final MobDisguise disguise;
@@ -43,16 +45,18 @@ public class GTMob {
   private final List<MobActionChain> onTargetHitActions;
   private final List<MobActionChain> onDeathActions;
 
-  public GTMob(String id, EntityType entityType, boolean isBaby, boolean disabledVanillaAttack,
-      String displayName, MobDisguise disguise, Map<EquipmentSlot, ItemStack> equipment,
-      ConfigKnockback meleeKnockback, Map<Attribute, Double> attributes,
-      List<ConfigSound> spawnSounds, List<ConfigParticle> spawnParticles,
-      List<ConfigParticle> onHitParticles, List<ConfigParticle> onDeathParticles,
-      IntRange experienceDrop, List<MobActionChain> onHitActions,
-      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
+  public GTMob(String id, EntityType entityType, boolean isBaby, boolean isAggresive,
+      boolean disabledVanillaAttack, String displayName, MobDisguise disguise,
+      Map<EquipmentSlot, ItemStack> equipment, ConfigKnockback meleeKnockback,
+      Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
+      List<ConfigParticle> spawnParticles, List<ConfigParticle> onHitParticles,
+      List<ConfigParticle> onDeathParticles, IntRange experienceDrop,
+      List<MobActionChain> onHitActions, List<MobActionChain> onTargetHitActions,
+      List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
+    this.isAggresive = isAggresive;
     this.disabledVanillaAttack = disabledVanillaAttack;
     this.displayName = displayName;
     this.disguise = disguise;
@@ -125,6 +129,9 @@ public class GTMob {
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
     livingEntity.setRemoveWhenFarAway(false);
+    if (livingEntity instanceof PigZombie) {
+      ((PigZombie) livingEntity).setAngry(isAggresive);
+    }
 
     applyAge(livingEntity);
     setEquipment(livingEntity);
@@ -214,6 +221,10 @@ public class GTMob {
 
   public boolean isBaby() {
     return isBaby;
+  }
+
+  public boolean isAggresive() {
+    return isAggresive;
   }
 
   public boolean hasDisabledVanillaAttack() {

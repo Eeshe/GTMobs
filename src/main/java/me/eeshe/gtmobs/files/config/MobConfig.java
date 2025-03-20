@@ -69,6 +69,7 @@ public class MobConfig extends ConfigWrapper {
             "zombie1",
             EntityType.ZOMBIE,
             false,
+            true,
             false,
             "&eGTZombie",
             new MobDisguise(
@@ -131,6 +132,7 @@ public class MobConfig extends ConfigWrapper {
             "skeleton1",
             EntityType.SKELETON,
             false,
+            true,
             true,
             "&3GTSkeleton",
             new MobDisguise(
@@ -202,6 +204,7 @@ public class MobConfig extends ConfigWrapper {
     }
     config.addDefault(path + ".entity-type", gtMob.getEntityType().name());
     config.addDefault(path + ".baby", gtMob.isBaby());
+    config.addDefault(path + ".aggresive", gtMob.isAggresive());
     config.addDefault(path + ".disable-vanilla-attack", gtMob.hasDisabledVanillaAttack());
     config.addDefault(path + ".display-name", gtMob.getDisplayName());
     writeMobDisguise(path + ".disguise", gtMob.getDisguise());
@@ -305,6 +308,7 @@ public class MobConfig extends ConfigWrapper {
       return null;
     }
     boolean isBaby = mobSection.getBoolean("baby");
+    boolean isAggresive = mobSection.getBoolean("aggresive");
     boolean disabledVanillaAttack = mobSection.getBoolean("disable-vanilla-attack");
     String displayName = mobSection.getString("display-name", "");
     MobDisguise disguise = fetchMobDisguise(id + ".disguise");
@@ -323,9 +327,10 @@ public class MobConfig extends ConfigWrapper {
     List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit"));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death"));
 
-    return new GTMob(id, entityType, isBaby, disabledVanillaAttack, displayName, disguise, equipment,
-        meleeKnockback, attributes, spawnSounds, spawnParticles, onHitParticles,
-        onDeathParticles, experienceDrop, onHitActions, onTargetHitActions, onDeathActions);
+    return new GTMob(id, entityType, isBaby, isAggresive, disabledVanillaAttack,
+        displayName, disguise, equipment, meleeKnockback, attributes, spawnSounds,
+        spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
+        onHitActions, onTargetHitActions, onDeathActions);
   }
 
   /**
