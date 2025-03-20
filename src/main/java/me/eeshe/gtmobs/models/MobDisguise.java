@@ -182,11 +182,32 @@ public class MobDisguise {
   private String[] splitMobName(LivingEntity livingEntity) {
     String customName = livingEntity.getCustomName();
     if (customName == null) {
-      return null;
+      return new String[] { "" };
     }
     List<String> nameSegments = new ArrayList<>();
+    char lastCharacter = Character.MIN_VALUE;
+    boolean isBoldedText = false;
     for (int index = 0; index < customName.length(); index += 16) {
-      nameSegments.add(customName.substring(index, Math.min(customName.length(), index + 16)));
+      if (!nameSegments.isEmpty() && nameSegments.get(nameSegments.size() - 1).endsWith("§")) {
+        customName = customName.substring(0, index) + "§" + customName.substring(index);
+      }
+      if (isBoldedText) {
+        customName = customName.substring(0, index) + "§l" +
+            customName.substring(index);
+        isBoldedText = false;
+      }
+      String segment = customName.substring(index, Math.min(customName.length(), index + 16));
+      nameSegments.add(segment);
+
+      for (int charIndex = segment.length() - 1; charIndex > 0; charIndex--) {
+        char segmentCharacter = segment.charAt(charIndex);
+        if (segmentCharacter != '§' || lastCharacter != 'l') {
+          // Character isn't color code, update last character
+          lastCharacter = segmentCharacter;
+          continue;
+        }
+        isBoldedText = true;
+      }
     }
     return nameSegments.toArray(new String[0]);
   }
