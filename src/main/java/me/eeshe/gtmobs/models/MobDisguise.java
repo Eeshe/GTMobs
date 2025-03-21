@@ -1,5 +1,7 @@
 package me.eeshe.gtmobs.models;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,12 +19,15 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.util.LogUtil;
 import net.minecraft.server.v1_12_R1.EntityItem;
 import net.minecraft.server.v1_12_R1.EntityLiving;
@@ -33,6 +38,8 @@ import net.minecraft.server.v1_12_R1.WorldServer;
 
 public class MobDisguise {
   private static final Map<String, Property> CACHED_SKINS = new HashMap<>();
+  private static final List<String> SKIN_CACHE_QUEUE = new ArrayList<>();
+  private static BukkitTask SKIN_CACHE_TASK;
 
   private final boolean enabled;
   private final List<String> skinNames;
@@ -172,11 +179,11 @@ public class MobDisguise {
       equipment.put(EnumItemSlot.OFFHAND, CraftItemStack.asNMSCopy(entityEquipment.getItemInOffHand()));
     }
 
-    CompletableFuture<Property> skinFuture = fetchSkin(getRandomSkinName())
-        .whenComplete((skinProperty, throwable) -> {
-          gameProfile.getProperties().put("textures", skinProperty);
-        });
-    return new FakePlayer(entityPlayer, splitMobName, equipment, skinFuture);
+    Property skin = CACHED_SKINS.get(getRandomSkinName());
+    if (skin != null) {
+      gameProfile.getProperties().put("textures", skin);
+    }
+    return new FakePlayer(entityPlayer, splitMobName, equipment);
   }
 
   private String[] splitMobName(LivingEntity livingEntity) {
@@ -210,42 +217,6 @@ public class MobDisguise {
       }
     }
     return nameSegments.toArray(new String[0]);
-  }
-
-  /**
-   * Fetches the textures and signature for the skin corresponding to the passed
-   * name
-   *
-   * @param name Name of the skin to fetch
-   * @return Fetch skin texture and signature
-   */
-  private CompletableFuture<Property> fetchSkin(String name) {
-    if (CACHED_SKINS.containsKey(name)) {
-      return CompletableFuture.completedFuture(CACHED_SKINS.get(name));
-    }
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        URL uuidUrl = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
-        InputStreamReader uuidReader = new InputStreamReader(uuidUrl.openStream());
-        String uuid = new JsonParser().parse(uuidReader).getAsJsonObject().get("id").getAsString();
-
-        URL skinUrl = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"
-            + uuid + "?unsigned=false");
-        InputStreamReader skinReader = new InputStreamReader(skinUrl.openStream());
-        JsonObject property = new JsonParser().parse(skinReader).getAsJsonObject()
-            .getAsJsonArray("properties").get(0).getAsJsonObject();
-        String texture = property.get("value").getAsString();
-        String signature = property.get("signature").getAsString();
-
-        Property skinProperty = new Property("textures", texture, signature);
-        CACHED_SKINS.put(name, skinProperty);
-
-        return skinProperty;
-      } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-      }
-    });
   }
 
   /**
@@ -325,5 +296,79 @@ public class MobDisguise {
 
   public ItemStack getSkinItem() {
     return skinItem;
+  }
+
+  public static void cacheSkin(String playerName) {
+    if (SKIN_CACHE_QUEUE.contains(playerName) || CACHED_SKINS.containsKey(playerName)) {
+      return;
+    }
+    SKIN_CACHE_QUEUE.add(playerName);
+    startSkinCacheTask();
+  }
+
+  private static void startSkinCacheTask() {
+    if (SKIN_CACHE_TASK != null) {
+      return;
+    }
+    LogUtil.sendInfoLog("Starting skin cache task.");
+    SKIN_CACHE_TASK = new BukkitRunnable() {
+
+      @Override
+      public void run() {
+        if (SKIN_CACHE_QUEUE.isEmpty()) {
+          cancel();
+          SKIN_CACHE_TASK = null;
+          LogUtil.sendInfoLog("Finished caching " + CACHED_SKINS.size() + " skins.");
+          return;
+        }
+        String playerName = SKIN_CACHE_QUEUE.remove(0);
+        fetchSkin(playerName).whenComplete((property, throwable) -> {
+          if (throwable != null) {
+            throwable.printStackTrace();
+            return;
+          }
+          CACHED_SKINS.put(playerName, property);
+        });
+      }
+    }.runTaskTimerAsynchronously(GTMobs.getInstance(), 0L, 100L);
+  }
+
+  /**
+   * Fetches the textures and signature for the skin corresponding to the passed
+   * name
+   *
+   * @param name Name of the skin to fetch
+   * @return Fetch skin texture and signature
+   */
+  private static CompletableFuture<Property> fetchSkin(String name) {
+    if (CACHED_SKINS.containsKey(name)) {
+      return CompletableFuture.completedFuture(CACHED_SKINS.get(name));
+    }
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        URL uuidUrl = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
+        InputStreamReader uuidReader = new InputStreamReader(uuidUrl.openStream());
+        String uuid = new JsonParser().parse(uuidReader).getAsJsonObject().get("id").getAsString();
+
+        URL skinUrl = new URL("https://sessionserver.mojang.com/session/minecraft/profile/"
+            + uuid + "?unsigned=false");
+        InputStreamReader skinReader = new InputStreamReader(skinUrl.openStream());
+        JsonObject property = new JsonParser().parse(skinReader).getAsJsonObject()
+            .getAsJsonArray("properties").get(0).getAsJsonObject();
+        String texture = property.get("value").getAsString();
+        String signature = property.get("signature").getAsString();
+
+        Property skinProperty = new Property("textures", texture, signature);
+        CACHED_SKINS.put(name, skinProperty);
+
+        return skinProperty;
+      } catch (FileNotFoundException e) {
+        LogUtil.sendWarnLog("Skin '" + name + "' not found.");
+        return null;
+      } catch (IOException e) {
+        LogUtil.sendWarnLog("Couldn't fetch skin '" + name + "' because the server is being rate limited.");
+        return null;
+      }
+    });
   }
 }
