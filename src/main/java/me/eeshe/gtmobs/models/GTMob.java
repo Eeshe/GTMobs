@@ -29,7 +29,7 @@ public class GTMob {
   private final String id;
   private final EntityType entityType;
   private final boolean isBaby;
-  private final boolean isAggresive;
+  private final boolean isAggressive;
   private final boolean disabledVanillaAttack;
   private final String displayName;
   private final MobDisguise disguise;
@@ -45,7 +45,7 @@ public class GTMob {
   private final List<MobActionChain> onTargetHitActions;
   private final List<MobActionChain> onDeathActions;
 
-  public GTMob(String id, EntityType entityType, boolean isBaby, boolean isAggresive,
+  public GTMob(String id, EntityType entityType, boolean isBaby, boolean isAggressive,
       boolean disabledVanillaAttack, String displayName, MobDisguise disguise,
       Map<EquipmentSlot, ItemStack> equipment, ConfigKnockback meleeKnockback,
       Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
@@ -56,7 +56,7 @@ public class GTMob {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
-    this.isAggresive = isAggresive;
+    this.isAggressive = isAggressive;
     this.disabledVanillaAttack = disabledVanillaAttack;
     this.displayName = displayName;
     this.disguise = disguise;
@@ -130,7 +130,7 @@ public class GTMob {
     livingEntity.setCustomNameVisible(true);
     livingEntity.setRemoveWhenFarAway(false);
     if (livingEntity instanceof PigZombie) {
-      ((PigZombie) livingEntity).setAngry(isAggresive);
+      ((PigZombie) livingEntity).setAngry(isAggressive);
     }
 
     applyAge(livingEntity);
@@ -223,8 +223,8 @@ public class GTMob {
     return isBaby;
   }
 
-  public boolean isAggresive() {
-    return isAggresive;
+  public boolean isAggressive() {
+    return isAggressive;
   }
 
   public boolean hasDisabledVanillaAttack() {
