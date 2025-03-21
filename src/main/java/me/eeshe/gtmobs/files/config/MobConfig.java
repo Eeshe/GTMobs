@@ -348,6 +348,9 @@ public class MobConfig extends ConfigWrapper {
     List<String> skinNames = disguiseSection.getStringList("skins");
     ItemStack skinItem = ConfigUtil.fetchConfigItemStack(getConfig(), path + ".item");
 
+    for (String skinName : skinNames) {
+      MobDisguise.cacheSkin(skinName);
+    }
     return new MobDisguise(enabled, skinNames, skinItem);
   }
 

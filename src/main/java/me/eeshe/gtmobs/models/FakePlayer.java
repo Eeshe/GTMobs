@@ -4,15 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-
-import com.mojang.authlib.properties.Property;
 
 import me.eeshe.gtmobs.GTMobs;
 import net.minecraft.server.v1_12_R1.DataWatcherObject;
@@ -36,14 +33,12 @@ public class FakePlayer {
   private final EntityPlayer entityPlayer;
   private final String[] splitMobName;
   private final Map<EnumItemSlot, ItemStack> equipment;
-  private final CompletableFuture<Property> skinFuture;
 
   public FakePlayer(EntityPlayer entityPlayer, String[] splitMobName,
-      Map<EnumItemSlot, ItemStack> equipment, CompletableFuture<Property> skinFuture) {
+      Map<EnumItemSlot, ItemStack> equipment) {
     this.entityPlayer = entityPlayer;
     this.splitMobName = splitMobName;
     this.equipment = equipment;
-    this.skinFuture = skinFuture;
 
     FAKE_PLAYERS.put(entityPlayer.getId(), this);
   }
@@ -60,9 +55,6 @@ public class FakePlayer {
   public void spawn(Player player, LivingEntity livingEntity) {
     EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
     sendFakePlayerPackets(nmsPlayer);
-    skinFuture.whenComplete((arg0, arg1) -> {
-      sendFakePlayerPackets(nmsPlayer);
-    });
   }
 
   /**
@@ -160,9 +152,5 @@ public class FakePlayer {
 
   public EntityPlayer getEntityPlayer() {
     return entityPlayer;
-  }
-
-  public CompletableFuture<Property> getSkinFuture() {
-    return skinFuture;
   }
 }
