@@ -52,7 +52,7 @@ public class PacketHandler implements Listener {
   private static final List<Integer> FAKE_PLAYER_IGNORED_DATA_WATCHER_TYPES = List.of(
       12, 14);
   private static final List<Integer> ITEM_ENTITY_IGNORED_DATA_WATCHER_TYPES = List.of(
-      7, 10, 12, 14);
+      7, 8, 9, 10, 12, 14);
 
   private final Map<UUID, Deque<Packet<?>>> packetDequeus = new HashMap<>();
   private final GTMobs plugin;
