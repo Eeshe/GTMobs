@@ -245,7 +245,8 @@ public class PacketHandler implements Listener {
       uuidField.setAccessible(false);
 
       ActiveMob activeMob = ActiveMob.fromEntity(Bukkit.getEntity(uuid));
-      if (activeMob == null) {
+      if (activeMob == null || activeMob.getGTMob().getDisguise() == null
+          || activeMob.getGTMob().getDisguise() == null) {
         return;
       }
       Bukkit.getScheduler().runTaskLater(plugin,
