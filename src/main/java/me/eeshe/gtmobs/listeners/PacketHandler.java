@@ -44,7 +44,7 @@ public class PacketHandler implements Listener {
   private static final List<Class<?>> IGNORED_PACKET_CLASSES = List.of();
 
   private static final List<Class<?>> HANDLED_PACKET_CLASSES = List.of(
-      PacketPlayOutEntityMetadata.class,
+      // PacketPlayOutEntityMetadata.class,
       PacketPlayOutEntityStatus.class,
       PacketPlayOutUpdateAttributes.class,
       PacketPlayOutAnimation.class,
@@ -172,6 +172,7 @@ public class PacketHandler implements Listener {
    * @param player Player the packet is being sent to
    */
   private void handleMetadataPacket(PacketPlayOutEntityMetadata packet) {
+    packet = cloneMetadataPacket(packet);
     int packetEntityId = getPacketEntityId(packet);
     try {
       // Accessing DataWatcher
@@ -198,6 +199,24 @@ public class PacketHandler implements Listener {
         }
       }
     } catch (Exception ignored) {
+    }
+  }
+
+  private PacketPlayOutEntityMetadata cloneMetadataPacket(PacketPlayOutEntityMetadata packet) {
+    try {
+      Class<?> clazz = packet.getClass();
+      PacketPlayOutEntityMetadata clonedPacket = (PacketPlayOutEntityMetadata) clazz.getDeclaredConstructor()
+          .newInstance();
+
+      for (Field field : clazz.getDeclaredFields()) {
+        field.setAccessible(true);
+        field.set(clonedPacket, field.get(packet));
+        field.setAccessible(false);
+      }
+      return packet;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
     }
   }
 

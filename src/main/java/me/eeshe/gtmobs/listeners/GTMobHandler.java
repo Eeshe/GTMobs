@@ -25,7 +25,6 @@ import me.eeshe.gtmobs.models.config.ConfigKnockback;
 import me.eeshe.gtmobs.models.config.ConfigParticle;
 import me.eeshe.gtmobs.models.config.Sound;
 import me.eeshe.gtmobs.models.mobactions.MobActionChain;
-import me.eeshe.gtmobs.util.LogUtil;
 
 public class GTMobHandler implements Listener {
   private final GTMobs plugin;
@@ -118,10 +117,13 @@ public class GTMobHandler implements Listener {
         velocity.add(new Vector(0, knockbackSettings.getStrength(), 0));
       }
       try {
+        if (Double.isNaN(velocity.getX()) || Double.isNaN(velocity.getY())
+            || Double.isNaN(velocity.getZ())) {
+          return;
+        }
         damaged.setVelocity(velocity);
       } catch (Exception e) {
         e.printStackTrace();
-        LogUtil.sendWarnLog("Velocity vector: " + velocity);
       }
     }, 0L);
   }
