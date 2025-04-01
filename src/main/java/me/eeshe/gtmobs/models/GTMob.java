@@ -128,7 +128,6 @@ public class GTMob {
     }
     livingEntity.setCustomName(StringUtil.formatColor(displayName));
     livingEntity.setCustomNameVisible(true);
-    livingEntity.setRemoveWhenFarAway(false);
     if (livingEntity instanceof PigZombie) {
       ((PigZombie) livingEntity).setAngry(isAggressive);
     }

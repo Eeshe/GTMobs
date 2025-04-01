@@ -3,6 +3,7 @@ package me.eeshe.gtmobs.models;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -10,6 +11,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import me.eeshe.gtmobs.GTMobs;
 import me.eeshe.gtmobs.util.LogUtil;
+import net.minecraft.server.v1_12_R1.PacketPlayOutEntityDestroy;
 
 public class ActiveMob {
   private final LivingEntity livingEntity;
@@ -144,6 +146,12 @@ public class ActiveMob {
       FakePlayer.getFakePlayers().remove(entityId);
       ItemEntity.getItemEntities().remove(entityId);
     }, 100L);
+    Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
+      PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(livingEntity.getEntityId());
+      for (Player player : livingEntity.getWorld().getPlayers()) {
+        (((CraftPlayer) player).getHandle()).playerConnection.sendPacket(destroyPacket);
+      }
+    }, 20L);
   }
 
   /**
