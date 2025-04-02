@@ -1,13 +1,16 @@
 package me.eeshe.gtmobs.files.config;
 
 import java.text.DecimalFormat;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import me.eeshe.gtmobs.GTMobs;
 
 public class MainConfig extends ConfigWrapper {
-  private static final String MOB_SPAWN_LIMIT_PATH = "mob-spawn-limit";
+  private static final String WORLD_MOB_SPAWN_LIMIT_PATH = "world-mob-spawn-limit";
   private static final String PACKET_DEBUGGING_PATH = "packet-debugging";
   private static final String DESPAWN_SETTINGS_PATH = "despawn-settings";
   private static final String DESPAWN_TIME_PATH = DESPAWN_SETTINGS_PATH + ".time";
@@ -22,7 +25,11 @@ public class MainConfig extends ConfigWrapper {
     FileConfiguration config = getConfig();
 
     config.addDefault("decimal-format", "#,###.##");
-    config.addDefault(MOB_SPAWN_LIMIT_PATH, 100);
+    if (!config.contains(WORLD_MOB_SPAWN_LIMIT_PATH)) {
+      for (Entry<String, Integer> entry : Map.ofEntries(Map.entry("world", 100)).entrySet()) {
+        config.addDefault(WORLD_MOB_SPAWN_LIMIT_PATH + "." + entry.getKey(), entry.getValue());
+      }
+    }
     config.addDefault(PACKET_DEBUGGING_PATH, false);
     writeDefaultDespawnSettings();
 
@@ -55,8 +62,8 @@ public class MainConfig extends ConfigWrapper {
    *
    * @return Configured mob spawn limit.
    */
-  public int getMobSpawnLimit() {
-    return getConfig().getInt(MOB_SPAWN_LIMIT_PATH);
+  public int getMobSpawnLimit(World world) {
+    return getConfig().getInt(WORLD_MOB_SPAWN_LIMIT_PATH + "." + world.getName(), Integer.MAX_VALUE);
   }
 
   /**

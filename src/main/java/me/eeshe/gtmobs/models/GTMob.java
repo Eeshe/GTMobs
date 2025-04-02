@@ -123,7 +123,7 @@ public class GTMob {
     if (location == null) {
       return null;
     }
-    if (GTMobs.getInstance().getActiveMobManager().hasReachedSpawnLimit()) {
+    if (GTMobs.getInstance().getActiveMobManager().hasReachedSpawnLimit(location.getWorld())) {
       return null;
     }
     LivingEntity livingEntity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
