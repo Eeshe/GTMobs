@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import me.eeshe.gtmobs.GTMobs;
 
 public class MainConfig extends ConfigWrapper {
+  private static final String MOB_SPAWN_LIMIT_PATH = "mob-spawn-limit";
   private static final String PACKET_DEBUGGING_PATH = "packet-debugging";
   private static final String DESPAWN_SETTINGS_PATH = "despawn-settings";
   private static final String DESPAWN_TIME_PATH = DESPAWN_SETTINGS_PATH + ".time";
@@ -21,6 +22,7 @@ public class MainConfig extends ConfigWrapper {
     FileConfiguration config = getConfig();
 
     config.addDefault("decimal-format", "#,###.##");
+    config.addDefault(MOB_SPAWN_LIMIT_PATH, 100);
     config.addDefault(PACKET_DEBUGGING_PATH, false);
     writeDefaultDespawnSettings();
 
@@ -46,6 +48,15 @@ public class MainConfig extends ConfigWrapper {
    */
   public DecimalFormat getDecimalFormat() {
     return new DecimalFormat(getConfig().getString("decimal-format", "#,###.##"));
+  }
+
+  /**
+   * Returns the configured mob spawn limit.
+   *
+   * @return Configured mob spawn limit.
+   */
+  public int getMobSpawnLimit() {
+    return getConfig().getInt(MOB_SPAWN_LIMIT_PATH);
   }
 
   /**

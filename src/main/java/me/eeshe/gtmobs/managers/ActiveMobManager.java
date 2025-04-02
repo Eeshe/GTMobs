@@ -2,6 +2,7 @@ package me.eeshe.gtmobs.managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -73,4 +74,17 @@ public class ActiveMobManager extends DataManager {
     return activeMobs;
   }
 
+  public boolean hasReachedSpawnLimit() {
+    // WARN: It's possible that activeMobs.size() isn't reliable, we'll have to
+    // figure this out during testing
+    int aliveGTMobs = 0;
+    for (ActiveMob activeMob : new HashSet<>(activeMobs.values())) {
+      if (activeMob.getLivingEntity().isDead()) {
+        activeMob.unregister(true);
+        continue;
+      }
+      aliveGTMobs += 1;
+    }
+    return aliveGTMobs >= getPlugin().getMainConfig().getMobSpawnLimit();
+  }
 }

@@ -84,24 +84,24 @@ public class CommandSpawn extends PluginCommand {
       Message.NO_VALID_SPAWN_LOCATION.sendError(sender);
       return;
     }
-    boolean spawnErrors = false;
+    int spawnedMobs = 0;
     for (int i = 0; i < amount; i++) {
       Location spawnLocation = safeLocations.size() == 1 ? safeLocations.get(0)
           : safeLocations.remove(0);
       LivingEntity spawnedMob = gtMob.spawn(spawnLocation);
-      if (spawnErrors) {
+      if (spawnedMob == null) {
         continue;
       }
-      spawnErrors = spawnedMob == null;
+      spawnedMobs += 1;
     }
-    if (spawnErrors) {
+    if (spawnedMobs != amount) {
       Message.SPAWN_ERROR.sendError(sender);
       if (amount == 1) {
         return;
       }
     }
     Message.SPAWN_COMMAND_SUCCESS.sendSuccess(sender, Map.ofEntries(
-        Map.entry("%amount%", StringUtil.formatNumber(amount)),
+        Map.entry("%amount%", StringUtil.formatNumber(spawnedMobs)),
         Map.entry("%id%", mobId)));
   }
 }
