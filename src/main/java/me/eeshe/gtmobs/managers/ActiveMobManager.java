@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 
@@ -20,7 +21,18 @@ public class ActiveMobManager extends DataManager {
 
   @Override
   public void load() {
+    startGhostMobTask();
+  }
 
+  private void startGhostMobTask() {
+    Bukkit.getScheduler().runTaskTimer(getPlugin(), () -> {
+      for (ActiveMob activeMob : activeMobs.values()) {
+        if (!activeMob.getLivingEntity().isDead()) {
+          continue;
+        }
+        activeMob.sendRemovePacket();
+      }
+    }, 100L, 100L);
   }
 
   @Override

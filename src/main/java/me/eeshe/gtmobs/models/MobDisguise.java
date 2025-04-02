@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
@@ -110,8 +111,11 @@ public class MobDisguise {
     if (fakePlayer == null) {
       return;
     }
-    for (Player player : livingEntity.getWorld().getPlayers()) {
-      fakePlayer.spawn(player, livingEntity);
+    for (Entity entity : livingEntity.getNearbyEntities(47, 47, 47)) {
+      if (!(entity instanceof Player)) {
+        continue;
+      }
+      fakePlayer.spawn((Player) entity, livingEntity);
     }
   }
 
@@ -140,7 +144,6 @@ public class MobDisguise {
     WorldServer nmsWorld = ((CraftWorld) livingEntity.getWorld()).getHandle();
     EntityLiving nmsLivingEntity = getNmsLivingEntity(livingEntity);
     if (nmsLivingEntity == null) {
-      LogUtil.sendWarnLog("NULL NMS LIVING ENTITY");
       return null;
     }
 
@@ -225,7 +228,14 @@ public class MobDisguise {
    */
   private void applyItemDisguise(LivingEntity livingEntity) {
     ItemEntity itemEntity = createItemEntity(livingEntity);
-    for (Player player : livingEntity.getWorld().getPlayers()) {
+    if (itemEntity == null) {
+      return;
+    }
+    for (Entity entity : livingEntity.getNearbyEntities(47, 47, 47)) {
+      if (!(entity instanceof Player)) {
+        continue;
+      }
+      Player player = (Player) entity;
       itemEntity.spawn(player);
       applyItemDisguise(livingEntity, player);
     }
@@ -239,6 +249,9 @@ public class MobDisguise {
    */
   private void applyItemDisguise(LivingEntity livingEntity, Player player) {
     ItemEntity itemEntity = createItemEntity(livingEntity);
+    if (itemEntity == null) {
+      return;
+    }
     itemEntity.spawn(player);
   }
 
@@ -251,6 +264,9 @@ public class MobDisguise {
   private ItemEntity createItemEntity(LivingEntity livingEntity) {
     net.minecraft.server.v1_12_R1.ItemStack nmsItemStack = CraftItemStack.asNMSCopy(skinItem);
     EntityLiving nmsLivingEntity = getNmsLivingEntity(livingEntity);
+    if (nmsLivingEntity == null) {
+      return null;
+    }
 
     EntityItem entityItem = new EntityItem(
         nmsLivingEntity.getWorld(),

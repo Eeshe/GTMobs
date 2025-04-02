@@ -146,6 +146,10 @@ public class ActiveMob {
       FakePlayer.getFakePlayers().remove(entityId);
       ItemEntity.getItemEntities().remove(entityId);
     }, 100L);
+    sendRemovePacket();
+  }
+
+  public void sendRemovePacket() {
     Bukkit.getScheduler().runTaskLater(GTMobs.getInstance(), () -> {
       PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(livingEntity.getEntityId());
       for (Player player : livingEntity.getWorld().getPlayers()) {
