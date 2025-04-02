@@ -102,6 +102,11 @@ public class MobConfig extends ConfigWrapper {
             List.of(
                 new MobActionChain(List.of(
                     new ConsoleCommandMobAction(List.of(
+                        "broadcast &5zombie1 has spawned"), 0L)),
+                    1)),
+            List.of(
+                new MobActionChain(List.of(
+                    new ConsoleCommandMobAction(List.of(
                         "broadcast &5zombie1 was hit",
                         "broadcast &5Attacker: %player_name%"), 0L)),
                     1),
@@ -163,6 +168,11 @@ public class MobConfig extends ConfigWrapper {
                 new ConfigParticle(Particle.SMOKE_NORMAL, 10, 1, 1, 1, 0.5),
                 new ConfigParticle(Particle.EXPLOSION_HUGE, 10, 1, 1, 1, 0.5)),
             new IntRange(10, 50),
+            List.of(
+                new MobActionChain(List.of(
+                    new ConsoleCommandMobAction(List.of(
+                        "broadcast &5skeleton1 has spawned"), 0L)),
+                    1)),
             List.of(new MobActionChain(List.of(
                 new EffectMobAction(MobActionTarget.ATTACKER, new PotionEffect(
                     PotionEffectType.CONFUSION,
@@ -215,6 +225,7 @@ public class MobConfig extends ConfigWrapper {
     ConfigUtil.writeConfigParticles(config, path + ".hit-particles", gtMob.getOnHitParticles());
     ConfigUtil.writeConfigParticles(config, path + ".death-particles", gtMob.getOnDeathParticles());
     ConfigUtil.writeIntRange(config, path + ".experience-drop", gtMob.getExperienceDrop());
+    writeDefaultMobActions(path + ".events.spawn", gtMob.getOnSpawnActions());
     writeDefaultMobActions(path + ".events.hit", gtMob.getOnHitActions());
     writeDefaultMobActions(path + ".events.target-hit", gtMob.getOnTargetHitActions());
     writeDefaultMobActions(path + ".events.death", gtMob.getOnDeathActions());
@@ -323,6 +334,7 @@ public class MobConfig extends ConfigWrapper {
     List<ConfigParticle> onDeathParticles = ConfigUtil.computeConfigParticles(
         mobSection.getString("death-particles"));
     IntRange experienceDrop = ConfigUtil.fetchIntRange(config, id + ".experience-drop");
+    List<MobActionChain> onSpawnActions = computeMobActionChains(mobSection.getString("events.spawn"));
     List<MobActionChain> onHitActions = computeMobActionChains(mobSection.getString("events.hit"));
     List<MobActionChain> onTargetHitActions = computeMobActionChains(mobSection.getString("events.target-hit"));
     List<MobActionChain> onDeathActions = computeMobActionChains(mobSection.getString("events.death"));
@@ -330,7 +342,7 @@ public class MobConfig extends ConfigWrapper {
     return new GTMob(id, entityType, isBaby, isAggressive, disabledVanillaAttack,
         displayName, disguise, equipment, meleeKnockback, attributes, spawnSounds,
         spawnParticles, onHitParticles, onDeathParticles, experienceDrop,
-        onHitActions, onTargetHitActions, onDeathActions);
+        onSpawnActions, onHitActions, onTargetHitActions, onDeathActions);
   }
 
   /**

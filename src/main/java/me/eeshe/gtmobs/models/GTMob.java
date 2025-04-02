@@ -41,6 +41,7 @@ public class GTMob {
   private final List<ConfigParticle> onHitParticles;
   private final List<ConfigParticle> onDeathParticles;
   private final IntRange experienceDrop;
+  private final List<MobActionChain> onSpawnActions;
   private final List<MobActionChain> onHitActions;
   private final List<MobActionChain> onTargetHitActions;
   private final List<MobActionChain> onDeathActions;
@@ -51,8 +52,8 @@ public class GTMob {
       Map<Attribute, Double> attributes, List<ConfigSound> spawnSounds,
       List<ConfigParticle> spawnParticles, List<ConfigParticle> onHitParticles,
       List<ConfigParticle> onDeathParticles, IntRange experienceDrop,
-      List<MobActionChain> onHitActions, List<MobActionChain> onTargetHitActions,
-      List<MobActionChain> onDeathActions) {
+      List<MobActionChain> onSpawnActions, List<MobActionChain> onHitActions,
+      List<MobActionChain> onTargetHitActions, List<MobActionChain> onDeathActions) {
     this.id = id;
     this.entityType = entityType;
     this.isBaby = isBaby;
@@ -68,6 +69,7 @@ public class GTMob {
     this.onHitParticles = onHitParticles;
     this.onDeathParticles = onDeathParticles;
     this.experienceDrop = experienceDrop;
+    this.onSpawnActions = onSpawnActions;
     this.onHitActions = onHitActions;
     this.onTargetHitActions = onTargetHitActions;
     this.onDeathActions = onDeathActions;
@@ -143,6 +145,10 @@ public class GTMob {
     activeMob.register();
     if (disguise != null) {
       disguise.apply(activeMob);
+    }
+    // Execute spawn actions
+    for (MobActionChain mobActionChain : onSpawnActions) {
+      mobActionChain.attemptExecution(livingEntity, null);
     }
     // Play spawn particles
     for (ConfigParticle spawnParticle : spawnParticles) {
@@ -271,6 +277,10 @@ public class GTMob {
 
   public IntRange getExperienceDrop() {
     return experienceDrop;
+  }
+
+  public List<MobActionChain> getOnSpawnActions() {
+    return onSpawnActions;
   }
 
   public List<MobActionChain> getOnHitActions() {
