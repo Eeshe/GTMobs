@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
 import me.eeshe.gtmobs.GTMobs;
@@ -74,7 +75,7 @@ public class ActiveMobManager extends DataManager {
     return activeMobs;
   }
 
-  public boolean hasReachedSpawnLimit() {
+  public boolean hasReachedSpawnLimit(World world) {
     // WARN: It's possible that activeMobs.size() isn't reliable, we'll have to
     // figure this out during testing
     int aliveGTMobs = 0;
@@ -85,6 +86,6 @@ public class ActiveMobManager extends DataManager {
       }
       aliveGTMobs += 1;
     }
-    return aliveGTMobs >= getPlugin().getMainConfig().getMobSpawnLimit();
+    return aliveGTMobs >= getPlugin().getMainConfig().getMobSpawnLimit(world);
   }
 }
