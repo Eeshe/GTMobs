@@ -121,6 +121,9 @@ public class GTMob {
     if (location == null) {
       return null;
     }
+    if (GTMobs.getInstance().getActiveMobManager().hasReachedSpawnLimit()) {
+      return null;
+    }
     LivingEntity livingEntity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
     if (livingEntity.isDead()) {
       // Mob couldn't spawn
