@@ -812,6 +812,15 @@ public class MobConfig extends ConfigWrapper {
           Arrays.toString(params));
       return null;
     }
-    return new SuicideMobAction(mobActionTarget);
+    long delayTicks = 0;
+    if (params.length > 1) {
+      try {
+        delayTicks = Long.parseLong(params[1]);
+      } catch (Exception e) {
+        LogUtil.sendWarnLog("Invalid delay ticks '" + params[1] + "' from parameters: " +
+            Arrays.toString(params) + ". Using 0.");
+      }
+    }
+    return new SuicideMobAction(mobActionTarget, delayTicks);
   }
 }

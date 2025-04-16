@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
@@ -156,6 +157,8 @@ public class MobDisguise {
     } else {
       fakePlayerName = "";
     }
+    fakePlayerName = individualizeName(fakePlayerName);
+
     GameProfile gameProfile = new GameProfile(UUID.randomUUID(), fakePlayerName);
     EntityPlayer entityPlayer = new EntityPlayer(
         nmsWorld.getMinecraftServer(),
@@ -193,33 +196,108 @@ public class MobDisguise {
     if (customName == null) {
       return new String[] { "" };
     }
-    List<String> nameSegments = new ArrayList<>();
-    char lastCharacter = Character.MIN_VALUE;
-    boolean isBoldedText = false;
-    for (int index = 0; index < customName.length(); index += 16) {
-      if (!nameSegments.isEmpty() && nameSegments.get(nameSegments.size() - 1).endsWith("§")) {
-        customName = customName.substring(0, index) + "§" + customName.substring(index);
-      }
-      if (isBoldedText) {
-        customName = customName.substring(0, index) + "§l" +
-            customName.substring(index);
-        isBoldedText = false;
-      }
-      String segment = customName.substring(index, Math.min(customName.length(), index + 16));
-      nameSegments.add(segment);
+    List<String> segments = new ArrayList<>();
+    StringBuilder currentSegment = new StringBuilder();
+    char lastColorChar = '\0';
+    char lastFormatChar = '\0';
+    int maxSegments = 3;
+    int maxLength = 16;
 
-      for (int charIndex = segment.length() - 1; charIndex > 0; charIndex--) {
-        char segmentCharacter = segment.charAt(charIndex);
-        if (segmentCharacter != '§' || lastCharacter != 'l') {
-          // Character isn't color code, update last character
-          lastCharacter = segmentCharacter;
-          continue;
+    for (int i = 0; i < customName.length(); i++) {
+      char currentChar = customName.charAt(i);
+
+      if (currentChar == '§' && i + 1 < customName.length()) {
+        char nextChar = customName.charAt(i + 1);
+        if (isColorChar(nextChar)) {
+          lastColorChar = nextChar;
+        } else if (isFormatChar(nextChar)) {
+          lastFormatChar = nextChar;
         }
-        isBoldedText = true;
+      }
+      currentSegment.append(currentChar);
+      if (currentSegment.length() != maxLength) {
+        continue;
+      }
+      if (currentSegment.toString().endsWith("§")) {
+        currentSegment.setLength(maxLength - 1);
+        i += 1;
+      }
+      segments.add(currentSegment.toString());
+      if (segments.size() == maxSegments) {
+        break;
+      }
+
+      currentSegment.setLength(0);
+      if (lastColorChar != '\0') {
+        currentSegment.append('§').append(lastColorChar);
+        lastColorChar = '\0';
+      }
+      if (lastFormatChar != '\0') {
+        currentSegment.append('§').append(lastFormatChar);
+        lastFormatChar = '\0';
       }
     }
-    return nameSegments.toArray(new String[0]);
+
+    // Add any remaining characters in the current segment
+    if (currentSegment.length() > 0) {
+      segments.add(currentSegment.toString());
+    }
+
+    return segments.toArray(new String[0]);
   }
+
+  private boolean isColorChar(char c) {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'g');
+  }
+
+  private boolean isFormatChar(char c) {
+    return c == 'l' || c == 'u' || c == 'o' || c == 'k' || c == 'm';
+  }
+
+  private String individualizeName(String name) {
+    int colorCodeAmount = Math.floorDiv(16 - name.length(), 2);
+    Random random = ThreadLocalRandom.current();
+    for (int i = 0; i < colorCodeAmount; i++) {
+      name = "§" + random.nextInt(10) + name;
+    }
+    return name;
+  }
+
+  // private String[] splitMobName(LivingEntity livingEntity) {
+  // String customName = livingEntity.getCustomName();
+  // if (customName == null) {
+  // return new String[] { "" };
+  // }
+  // List<String> nameSegments = new ArrayList<>();
+  // char lastCharacter = Character.MIN_VALUE;
+  // boolean isBoldedText = false;
+  // for (int index = 0; index < customName.length(); index += 16) {
+  // if (!nameSegments.isEmpty() && nameSegments.get(nameSegments.size() -
+  // 1).endsWith("§")) {
+  // customName = customName.substring(0, index) + "§" +
+  // customName.substring(index);
+  // }
+  // if (isBoldedText) {
+  // customName = customName.substring(0, index) + "§l" +
+  // customName.substring(index);
+  // isBoldedText = false;
+  // }
+  // String segment = customName.substring(index, Math.min(customName.length(),
+  // index + 16));
+  // nameSegments.add(segment);
+  //
+  // for (int charIndex = segment.length() - 1; charIndex > 0; charIndex--) {
+  // char segmentCharacter = segment.charAt(charIndex);
+  // if (segmentCharacter != '§' || lastCharacter != 'l') {
+  // // Character isn't color code, update last character
+  // lastCharacter = segmentCharacter;
+  // continue;
+  // }
+  // isBoldedText = true;
+  // }
+  // }
+  // return nameSegments.toArray(new String[0]);
+  // }
 
   /**
    * Applies the ItemDisguise for the passed LivingEntity for all online players
